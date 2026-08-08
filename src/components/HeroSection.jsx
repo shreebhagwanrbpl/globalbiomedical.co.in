@@ -33,7 +33,7 @@ export default function HeroSection({ city }) {
     const fetchHeroData = async () => {
       try {
         const snap = await getDoc(
-          doc(db, "websites", "centralbiomedicals", "pages", "home")
+          doc(db, "websites", "globalbiomedicalcoin", "pages", "home")
         );
 
         if (snap.exists()) {
@@ -191,10 +191,10 @@ export default function HeroSection({ city }) {
 
           <div className="relative glass-card rounded-[40px] p-5 border border-white/80 shadow-2xl overflow-hidden hover:scale-[1.01] transition-transform duration-500 group w-full">
             <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/20 rounded-full blur-2xl pointer-events-none"></div>
-            
+
             <Image
               src={CBG}
-              alt="Central Biomedical"
+              alt="Global Biomedical"
               width={1200}
               height={900}
               className="rounded-[28px] object-cover h-[350px] sm:h-[450px] lg:h-[500px] w-full shadow-inner"

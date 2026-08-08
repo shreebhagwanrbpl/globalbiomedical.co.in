@@ -54,10 +54,10 @@ export default function Navbar() {
         <Link href={makeLink("/")} className="flex items-center">
           <h1 className="text-2xl font-extrabold tracking-tight">
             <span className="text-amber-400">
-              Central
+              Global
             </span>{" "}
             <span className="text-white">
-              Biomedicals
+              Biomedical
             </span>
           </h1>
         </Link>

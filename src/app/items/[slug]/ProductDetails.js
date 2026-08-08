@@ -69,7 +69,7 @@ export default function ProductDetails({ slug }) {
                     doc(
                         db,
                         "websites",
-                        "centralbiomedicals",
+                        "globalbiomedicalcoin",
                         "pages",
                         "products"
                     )
@@ -92,7 +92,7 @@ export default function ProductDetails({ slug }) {
                     collection(
                         db,
                         "websites",
-                        "centralbiomedicals",
+                        "globalbiomedicalcoin",
                         "pages",
                         "categoryproducts",
                         "categories"
@@ -193,7 +193,7 @@ export default function ProductDetails({ slug }) {
                 collection(
                     db,
                     "websitesQueries",
-                    "centralbiomedicals",
+                    "globalbiomedicalcoin",
                     "productQueries"
                 ),
                 {
@@ -236,7 +236,7 @@ export default function ProductDetails({ slug }) {
                 product.title,
             brand: {
                 "@type": "Brand",
-                name: product.brand || "Central Biomedicals",
+                name: product.brand || "Global Biomedical",
             },
         }
         : null;
@@ -795,11 +795,11 @@ ${product?.desc}
                             <div className="mt-12">
 
                                 <h3 className="text-2xl font-bold mb-4 text-slate-900">
-                                    Why Choose Central Biomedicals in {cityName}?
+                                    Why Choose Global Biomedical in {cityName}?
                                 </h3>
 
                                 <p className="text-slate-600 leading-8">
-                                    Central Biomedicals is a trusted supplier and
+                                    Global Biomedical is a trusted supplier and
                                     distributor of {product.title} in {cityName}.
                                     We provide high-quality biomedical and laboratory
                                     equipment for hospitals, pathology laboratories,
@@ -842,7 +842,7 @@ ${product?.desc}
                                     </h3>
 
                                     <p className="text-slate-600 leading-8">
-                                        Central Biomedicals supplies {product.title}
+                                        Global Biomedical supplies {product.title}
                                         in {cityName} with technical support,
                                         installation assistance and customer service
                                         for hospitals and laboratories.
@@ -856,7 +856,7 @@ ${product?.desc}
                                     </h3>
 
                                     <p className="text-slate-600 leading-8">
-                                        Central Biomedicals is a trusted dealer of
+                                        Global Biomedical is a trusted dealer of
                                         {product.title} in {cityName}. We supply
                                         biomedical equipment, laboratory instruments,
                                         diagnostic analyzers and healthcare devices
@@ -889,7 +889,7 @@ ${product?.desc}
                                     <p className="text-slate-600 leading-8">
                                         Buy high quality {product.title} in
                                         {cityName} at competitive prices.
-                                        Contact Central Biomedicals for the
+                                        Contact Global Biomedical for the
                                         latest quotation and product availability.
                                     </p>
 
@@ -1011,7 +1011,7 @@ ${product?.desc}
 
                                     <div>
                                         <h4 className="font-semibold text-lg">
-                                            How can I contact Central Biomedials?
+                                            How can I contact Global Biomedical?
                                         </h4>
 
                                         <p className="text-slate-600 mt-2">
