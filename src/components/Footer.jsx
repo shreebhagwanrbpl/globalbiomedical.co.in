@@ -9,32 +9,28 @@ import {
   Mail,
   Phone,
   MapPin,
+  Clock,
 } from "lucide-react";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaLinkedinIn,
+  FaTwitter,
+  FaWhatsapp,
+} from "react-icons/fa";
 
 export default function Footer() {
-  const [contactInfo, setContactInfo] =
-    useState([]);
+  const [contactInfo, setContactInfo] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [districtData, setDistrictData] =
-    useState(null);
+  const [districtData, setDistrictData] = useState(null);
 
   const pathname = usePathname();
+  const pathParts = pathname.split("/").filter(Boolean);
 
-  const pathParts = pathname
-    .split("/")
-    .filter(Boolean);
-
-  const staticRoutes = [
-    "about",
-    "services",
-    "products",
-    "contact",
-    "items",
-  ];
+  const staticRoutes = ["about", "services", "products", "contact", "items"];
 
   const district =
-    pathParts.length > 0 &&
-      !staticRoutes.includes(pathParts[0])
+    pathParts.length > 0 && !staticRoutes.includes(pathParts[0])
       ? pathParts[0]
       : "";
 
@@ -42,24 +38,15 @@ export default function Footer() {
     const loadContact = async () => {
       try {
         const snap = await getDoc(
-          doc(
-            db,
-            "websites",
-            "globalbiomedicalcoin",
-            "pages",
-            "contact"
-          )
+          doc(db, "websites", "globalbiomedicalcoin", "pages", "contact")
         );
 
         if (snap.exists()) {
-          setContactInfo(
-            snap.data().contactInfo || []
-          );
+          setContactInfo(snap.data().contactInfo || []);
         }
-
-        setLoading(false);
       } catch (err) {
         console.log(err);
+      } finally {
         setLoading(false);
       }
     };
@@ -70,16 +57,9 @@ export default function Footer() {
   useEffect(() => {
     const loadDistrict = async () => {
       if (!district) return;
-
       try {
         const snap = await getDoc(
-          doc(
-            db,
-            "websites",
-            "globalbiomedicalcoin",
-            "districts",
-            district
-          )
+          doc(db, "websites", "globalbiomedicalcoin", "districts", district)
         );
 
         if (snap.exists()) {
@@ -94,230 +74,256 @@ export default function Footer() {
   }, [district]);
 
   const phone =
-    contactInfo.find(
-      (x) => x.label === "Phone Number"
-    )?.value || "";
+    contactInfo.find((x) => x.label === "Phone Number")?.value ||
+    "+91 9257984336";
 
   const email =
-    contactInfo.find(
-      (x) => x.label === "Email Address"
-    )?.value || "";
+    contactInfo.find((x) => x.label === "Email Address")?.value ||
+    "info@globalbiomedical.co.in";
 
   const address =
-    contactInfo.find(
-      (x) => x.label === "Office Address"
-    )?.value || "";
+    contactInfo.find((x) => x.label === "Office Address")?.value ||
+    "Amrapali, Vaishali Nagar, Jaipur, Rajasthan 302021";
 
-  const dynamicAddress =
-    districtData
-      ? `${districtData.district}, ${districtData.state}, India`
-      : address;
+  const hours =
+    contactInfo.find((x) => x.label === "Working Hours")?.value ||
+    "Mon - Sat: 9:00 AM - 7:00 PM";
+
+  const dynamicAddress = districtData
+    ? `${districtData.district}, ${districtData.state}, India`
+    : address;
+
+  const phoneNumbers = [
+    "+91 9257984336",
+    "+91 8529833535",
+    "+91 9983301657",
+  ];
 
   const makeLink = (path) => {
     if (!district) return path;
-
-    if (path === "/") {
-      return `/${district}`;
-    }
-
+    if (path === "/") return `/${district}`;
     return `/${district}${path}`;
   };
+
   if (loading) {
     return (
-      <footer className="bg-white border-t border-slate-200">
+      <footer className="bg-slate-950 border-t border-slate-800 text-white">
         <div className="container-custom py-16">
-
           <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-10">
-
             {[...Array(4)].map((_, i) => (
               <div key={i}>
-                <div className="h-8 w-40 bg-slate-200 rounded animate-pulse mb-6" />
-
-                {[...Array(5)].map((_, j) => (
-                  <div
-                    key={j}
-                    className="h-5 bg-slate-200 rounded animate-pulse mb-4"
-                  />
+                <div className="h-8 w-40 bg-slate-800 rounded animate-pulse mb-6" />
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="h-5 bg-slate-800 rounded animate-pulse mb-4" />
                 ))}
               </div>
             ))}
-
           </div>
-
-          <div className="border-t border-slate-200 mt-12 pt-6">
-            <div className="h-5 w-72 bg-slate-200 rounded animate-pulse" />
-          </div>
-
         </div>
       </footer>
     );
   }
+
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-br from-black via-zinc-950 to-zinc-900 text-white">
+    <footer className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white border-t border-slate-800">
+      {/* Background Ambient Glow */}
+      <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-amber-500/10 blur-[130px]" />
+      <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px]" />
 
-      {/* Background Glow */}
-      <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-amber-500/10 blur-[120px]" />
-      <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-yellow-400/5 blur-[120px]" />
-
-      <div className="container-custom relative z-10 py-20">
-
+      <div className="container-custom relative z-10 py-16 lg:py-20">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+          {/* Column 1: Company Profile & Logo */}
+          <div className="space-y-6">
+            <Link href={makeLink("/")} className="flex items-center gap-3 group inline-block">
+              <div className="h-14 w-14 rounded-full overflow-hidden border border-amber-500/40 bg-white p-1 shadow-lg group-hover:border-amber-400 transition-all duration-300">
+                <img
+                  src="/logo.png"
+                  alt="Global Biomedical Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-extrabold leading-none text-white">
+                  <span className="text-amber-400">Global</span> Biomedical
+                </h2>
+                <span className="text-[10px] uppercase tracking-widest text-amber-300/90 font-semibold mt-1">
+                  Right Here, You Have An Option
+                </span>
+              </div>
+            </Link>
 
-          {/* Company */}
-          <div>
-
-            <h2 className="text-3xl font-extrabold">
-              <span className="text-amber-400">
-                Global
-              </span>{" "}
-              <span className="text-white">
-                Biomedical
-              </span>
-            </h2>
-
-            <p className="mt-6 leading-8 text-gray-400">
-              Delivering trusted diagnostic and biomedical solutions with
-              innovation, quality, and precision healthcare support for
-              hospitals, laboratories, and healthcare professionals.
+            <p className="leading-relaxed text-slate-400 text-sm">
+              Delivering trusted diagnostic and biomedical solutions with innovation, quality assurance, and 24/7 technical support for hospitals and laboratories.
             </p>
 
+            {/* Social Media Icons */}
+            <div className="pt-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-3">
+                Follow Us
+              </span>
+              <div className="flex items-center gap-3">
+                {[
+                  {
+                    icon: <FaFacebookF size={16} />,
+                    href: "https://www.facebook.com/people/Global-Biomedicals-Inc/100090524869295/",
+                    label: "Facebook",
+                    color: "hover:bg-blue-600",
+                  },
+                  {
+                    icon: <FaInstagram size={16} />,
+                    href: "https://www.instagram.com/globalbiomedicals/",
+                    label: "Instagram",
+                    color: "hover:bg-pink-600",
+                  },
+                  {
+                    icon: <FaWhatsapp size={16} />,
+                    href: `https://wa.me/919257984336?text=Hello%20Global%20Biomedical`,
+                    label: "WhatsApp",
+                    color: "hover:bg-emerald-600",
+                  },
+                  {
+                    icon: <FaLinkedinIn size={16} />,
+                    href: "https://linkedin.com",
+                    label: "LinkedIn",
+                    color: "hover:bg-blue-700",
+                  },
+                ].map((item, idx) => (
+                  <a
+                    key={idx}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.label}
+                    className={`h-10 w-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center transition-all duration-300 hover:text-white hover:scale-110 shadow-md ${item.color}`}
+                  >
+                    {item.icon}
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Column 2: Quick Links */}
           <div>
+            <h3 className="mb-6 text-lg font-bold text-amber-400 tracking-wide uppercase">
+              Quick Navigation
+            </h3>
+            <div className="flex flex-col gap-3 text-sm">
+              {[
+                { name: "Home Page", path: "/" },
+                { name: "About Us", path: "/about" },
+                { name: "Biomedical Services", path: "/services" },
+                { name: "Product Catalog", path: "/items" },
+                { name: "Contact & Support", path: "/contact" },
+              ].map((link) => (
+                <Link
+                  key={link.name}
+                  href={makeLink(link.path)}
+                  className="text-slate-400 transition-colors hover:text-amber-400 flex items-center gap-2"
+                >
+                  <span className="text-amber-500 text-xs">›</span>
+                  <span>{link.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
 
-            <h3 className="mb-6 text-xl font-bold text-amber-400">
-              Quick Links
+          {/* Column 3: Diagnostic Solutions */}
+          <div>
+            <h3 className="mb-6 text-lg font-bold text-amber-400 tracking-wide uppercase">
+              Product Categories
+            </h3>
+            <div className="flex flex-col gap-3 text-sm text-slate-400">
+              <p className="flex items-center gap-2">
+                <span className="text-amber-500 text-xs">•</span> Hematology Blood Analyzers
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-amber-500 text-xs">•</span> Biochemistry Analyzers
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-amber-500 text-xs">•</span> Electrolyte Analyzers
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-amber-500 text-xs">•</span> ELISA Readers & Washers
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-amber-500 text-xs">•</span> AMC & CMC Service Contracts
+              </p>
+            </div>
+          </div>
+
+          {/* Column 4: Contact Info */}
+          <div>
+            <h3 className="mb-6 text-lg font-bold text-amber-400 tracking-wide uppercase">
+              Contact Information
             </h3>
 
-            <div className="flex flex-col gap-4">
-
-              <Link
-                href={makeLink("/")}
-                className="text-gray-400 transition hover:text-amber-400"
-              >
-                Home
-              </Link>
-
-              <Link
-                href={makeLink("/about")}
-                className="text-gray-400 transition hover:text-amber-400"
-              >
-                About
-              </Link>
-
-              <Link
-                href={makeLink("/services")}
-                className="text-gray-400 transition hover:text-amber-400"
-              >
-                Services
-              </Link>
-
-              <Link
-                href={makeLink("/items")}
-                className="text-gray-400 transition hover:text-amber-400"
-              >
-                Products
-              </Link>
-
-              <Link
-                href={makeLink("/contact")}
-                className="text-gray-400 transition hover:text-amber-400"
-              >
-                Contact
-              </Link>
-
-            </div>
-
-          </div>
-
-          {/* Services */}
-          <div>
-
-            <h3 className="mb-6 text-xl font-bold text-amber-400">
-              Services
-            </h3>
-
-            <div className="space-y-4 text-gray-400">
-
-              <p>Diagnostic Equipment</p>
-
-              <p>Laboratory Solutions</p>
-
-              <p>Biomedical Instruments</p>
-
-              <p>Maintenance Support</p>
-
-            </div>
-
-          </div>
-
-          {/* Contact */}
-          <div>
-
-            <h3 className="mb-6 text-xl font-bold text-amber-400">
-              Contact Info
-            </h3>
-
-            <div className="space-y-5">
-
-              <div className="flex items-start gap-4">
-
-                <div className="rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 p-2">
-                  <MapPin size={18} className="text-black" />
+            <div className="space-y-4 text-sm">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <MapPin size={18} />
                 </div>
-
-                <p className="text-gray-400 leading-7">
-                  {dynamicAddress}
-                </p>
-
+                <div>
+                  <span className="text-xs text-slate-400 block font-semibold">Address</span>
+                  <p className="text-slate-200 leading-snug">{dynamicAddress}</p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4">
-
-                <div className="rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 p-2">
-                  <Phone size={18} className="text-black" />
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Phone size={18} />
                 </div>
-
-                <p className="text-gray-400">
-                  {phone}
-                </p>
-
+                <div>
+                  <span className="text-xs text-slate-400 block font-semibold mb-1">Phone Numbers</span>
+                  <div className="space-y-1">
+                    {phoneNumbers.map((num, idx) => (
+                      <a
+                        key={idx}
+                        href={`tel:${num.replace(/[^0-9+]/g, '')}`}
+                        className="block text-amber-400 font-bold hover:underline"
+                      >
+                        {num}
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4">
-
-                <div className="rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 p-2">
-                  <Mail size={18} className="text-black" />
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0">
+                  <Mail size={18} />
                 </div>
-
-                <p className="text-gray-400 break-all">
-                  {email}
-                </p>
-
+                <div>
+                  <span className="text-xs text-slate-400 block font-semibold">Email Us</span>
+                  <a href={`mailto:${email}`} className="text-slate-200 hover:text-amber-400 break-all font-medium">
+                    {email}
+                  </a>
+                </div>
               </div>
 
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400 block font-semibold">Working Hours</span>
+                  <p className="text-slate-300 text-xs">{hours}</p>
+                </div>
+              </div>
             </div>
-
           </div>
-
         </div>
 
-        {/* Bottom */}
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-amber-500/20 pt-8 text-sm text-gray-500 md:flex-row">
-
+        {/* Bottom copyright bar */}
+        <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>
-            © 2026 <span className="text-amber-400">Global Biomedical</span>. All Rights Reserved.
+            © {new Date().getFullYear()} <span className="text-amber-400 font-semibold">Global Biomedical Inc.</span> All Rights Reserved.
           </p>
-
           <p>
-            Designed with <span className="text-amber-400">Precision</span> for Modern Diagnostics.
+            Certified Diagnostic Equipment & Hospital Solutions
           </p>
-
         </div>
-
       </div>
-
     </footer>
   );
 }

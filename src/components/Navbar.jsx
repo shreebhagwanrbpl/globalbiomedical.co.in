@@ -51,15 +51,23 @@ export default function Navbar() {
       <div className="container-custom flex h-20 items-center justify-between">
 
         {/* Logo */}
-        <Link href={makeLink("/")} className="flex items-center">
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            <span className="text-amber-400">
-              Global
-            </span>{" "}
-            <span className="text-white">
-              Biomedical
+        <Link href={makeLink("/")} className="flex items-center gap-3 group">
+          <div className="relative h-13 w-13 rounded-full overflow-hidden border border-amber-500/40 bg-white p-1 shadow-lg group-hover:border-amber-400 group-hover:scale-105 transition-all duration-300">
+            <img
+              src="/logo.png"
+              alt="Global Biomedical Inc. Logo"
+              className="h-full w-full object-contain"
+            />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-none">
+              <span className="text-amber-400">Global</span>{" "}
+              <span className="text-white">Biomedical</span>
+            </h1>
+            <span className="text-[10px] uppercase tracking-widest text-amber-300/80 font-semibold mt-0.5">
+              Right Here, You Have An Option
             </span>
-          </h1>
+          </div>
         </Link>
 
         {/* Desktop Menu */}

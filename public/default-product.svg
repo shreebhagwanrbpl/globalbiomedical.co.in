@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#F8FAFC"/>
+  <rect x="40" y="40" width="320" height="320" rx="24" fill="#0F172A"/>
+  <rect x="70" y="70" width="260" height="150" rx="14" fill="#0284C7"/>
+  <path d="M80 145 L130 145 L150 100 L170 190 L190 120 L210 145 L320 145" fill="none" stroke="#38BDF8" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="110" cy="275" r="18" fill="#F59E0B"/>
+  <circle cx="170" cy="275" r="18" fill="#10B981"/>
+  <circle cx="230" cy="275" r="18" fill="#38BDF8"/>
+  <rect x="270" y="260" width="50" height="30" rx="6" fill="#F59E0B"/>
+  <text x="200" y="335" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="16" font-weight="bold">GLOBAL BIOMEDICAL INC.</text>
+</svg>

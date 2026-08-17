@@ -9,17 +9,49 @@ const ProductCard = React.memo(function ProductCard({ product, district }) {
         >
             <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_180px] gap-5 lg:gap-8 items-center">
                 {/* Image */}
-                <div className="relative h-[180px] sm:h-[220px] rounded-2xl lg:rounded-3xl overflow-hidden bg-slate-100">
-                    <img
-                        src={product.images?.[0] || product.image || "/placeholder.jpg"}
-                        alt={product.title}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-contain p-5"
-                        onError={(e) => {
-                            e.currentTarget.src = "/placeholder.jpg";
-                        }}
-                    />
+                <div className="relative h-[180px] sm:h-[220px] rounded-2xl lg:rounded-3xl overflow-hidden bg-slate-900 flex items-center justify-center p-3">
+                    {(() => {
+                        const rawImg =
+                            (product.images && product.images.length > 0 && product.images[0]) ||
+                            product.image ||
+                            product.imageUrl ||
+                            product.imgUrl ||
+                            product.picture ||
+                            product.img;
+
+                        let imgSrc = rawImg;
+                        if (!imgSrc || imgSrc === "/placeholder.svg" || imgSrc === "/logo.png") {
+                            const titleLower = (product.title || "").toLowerCase();
+                            const catLower = (product.category || "").toLowerCase();
+                            if (
+                                titleLower.includes("abbott") ||
+                                titleLower.includes("hdc") ||
+                                titleLower.includes("blood") ||
+                                titleLower.includes("hematology") ||
+                                catLower.includes("blood")
+                            ) {
+                                imgSrc = "/hdc_lyte_analyzer.svg";
+                            } else if (titleLower.includes("biochemistry") || catLower.includes("biochemistry")) {
+                                imgSrc = "/biochemistry_analyzer.svg";
+                            } else {
+                                imgSrc = "/hdc_lyte_analyzer.svg";
+                            }
+                        }
+
+                        return (
+                            <img
+                                src={imgSrc}
+                                alt={product.title}
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = "/hdc_lyte_analyzer.svg";
+                                }}
+                            />
+                        );
+                    })()}
                 </div>
 
                 {/* Content */}

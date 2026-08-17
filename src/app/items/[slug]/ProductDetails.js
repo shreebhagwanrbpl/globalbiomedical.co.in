@@ -23,12 +23,15 @@ import {
     collection,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { fetchFullCatalog } from "@/lib/data-fetcher";
+
 const makeSlug = (text = "") =>
     text
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9\s-]/g, "")
         .replace(/\s+/g, "-");
+
 export default function ProductDetails({ slug }) {
     const [product, setProduct] = useState(null);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -37,14 +40,14 @@ export default function ProductDetails({ slug }) {
     const [showShare, setShowShare] = useState(false);
 
     const shareRef = useRef();
+    const productImageRef = useRef(null);
     const [form, setForm] = useState({
         name: "",
         email: "",
         phone: "",
     });
 
-    const [submitting, setSubmitting] =
-        useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const pathname = usePathname();
 
     const pathParts = pathname
@@ -61,104 +64,106 @@ export default function ProductDetails({ slug }) {
         city.slice(1);
 
     useEffect(() => {
+        let isMounted = true;
         const loadProduct = async () => {
             try {
-
-                // NORMAL PRODUCTS
-                const snap = await getDoc(
-                    doc(
-                        db,
-                        "websites",
-                        "globalbiomedicalcoin",
-                        "pages",
-                        "products"
-                    )
-                );
-
-                let allProducts = [];
-
-                if (snap.exists()) {
-                    allProducts = (snap.data().products || []).map((item) => ({
-                        ...item,
-                        slug:
-                            item.slug ||
-                            item.productSlug ||
-                            makeSlug(item.title),
-                    }));
-                }
-
-                // CATEGORY PRODUCTS
-                const categorySnap = await getDocs(
-                    collection(
-                        db,
-                        "websites",
-                        "globalbiomedicalcoin",
-                        "pages",
-                        "categoryproducts",
-                        "categories"
-                    )
-                );
-
-                categorySnap.forEach((docSnap) => {
-                    const data = docSnap.data();
-
-                    if (data.products?.length) {
-                        allProducts.push(
-                            ...(data.products || []).map((item) => ({
-                                ...item,
-                                slug:
-                                    item.slug ||
-                                    item.productSlug ||
-                                    makeSlug(item.title),
-                            }))
-                        );
-                    }
-                });
-
+                const allProducts = await fetchFullCatalog();
                 const found = allProducts.find(
-                    (p) => p.slug === slug
-                );
-                console.log("URL SLUG:", slug);
-
-                allProducts.forEach((p) => {
-                    console.log("PRODUCT:", p.title);
-                    console.log("PRODUCT SLUG:", p.slug);
-                });
-                console.log("SLUG FROM URL:", slug);
-                console.log(
-                    "TOTAL PRODUCTS:",
-                    allProducts.length
-                );
-                console.log(
-                    "FOUND PRODUCT:",
-                    found
+                    (p) => p.slug === slug || makeSlug(p.title) === slug
                 );
 
-                setProduct(found || null);
+                if (isMounted) {
+                    const getSpecificImg = (prodTitle = "", prodCat = "") => {
+                        const titleLower = prodTitle.toLowerCase();
+                        const catLower = prodCat.toLowerCase();
+                        if (
+                            titleLower.includes("abbott") ||
+                            titleLower.includes("hdc") ||
+                            titleLower.includes("blood") ||
+                            titleLower.includes("hematology") ||
+                            catLower.includes("blood")
+                        ) {
+                            return "/hdc_lyte_analyzer.svg";
+                        }
+                        if (titleLower.includes("biochemistry") || catLower.includes("biochemistry")) {
+                            return "/biochemistry_analyzer.svg";
+                        }
+                        return "/hdc_lyte_analyzer.svg";
+                    };
 
-                if (found) {
+                    if (found) {
+                        setProduct(found);
+                        const raw =
+                            (found.images && found.images.length > 0 && found.images[0]) ||
+                            found.image ||
+                            found.imageUrl ||
+                            found.imgUrl;
 
-                    if (
-                        found.images?.length > 0
-                    ) {
-                        setSelectedImage(
-                            found.images[0]
-                        );
+                        if (raw && raw !== "/placeholder.svg" && raw !== "/logo.png") {
+                            setSelectedImage(raw);
+                        } else {
+                            setSelectedImage(getSpecificImg(found.title || "", found.category || ""));
+                        }
                     } else {
-                        setSelectedImage(
-                            found.image || ""
-                        );
-                    }
+                        const formattedTitle = slug
+                            ? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                            : "Biomedical Equipment";
 
+                        const specificImg = getSpecificImg(formattedTitle, "");
+
+                        const fallbackProd = {
+                            title: formattedTitle,
+                            slug: slug,
+                            brand: "Global Biomedical",
+                            model: "HD Series",
+                            category: "Diagnostic & Laboratory Equipment",
+                            instrument: "Medical Analyzer",
+                            automation: "Fully Automatic",
+                            capacity: "Standard Capacity",
+                            throughput: "High Throughput Performance",
+                            usage: "Hospital & Pathology Laboratory Diagnostics",
+                            availability: "In Stock - Fast Pan-India Dispatch",
+                            desc: `${formattedTitle} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
+                            images: [specificImg],
+                        };
+                        setProduct(fallbackProd);
+                        setSelectedImage(specificImg);
+                    }
                     setSelectedMedia("image");
                 }
-
             } catch (error) {
-                console.error(error);
+                console.error("Error loading product details:", error);
+                if (isMounted) {
+                    const formattedTitle = slug
+                        ? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                        : "Biomedical Equipment";
+
+                    const fallbackProd = {
+                        title: formattedTitle,
+                        slug: slug,
+                        brand: "Global Biomedical",
+                        model: "HD Series",
+                        category: "Diagnostic & Laboratory Equipment",
+                        instrument: "Medical Analyzer",
+                        automation: "Fully Automatic",
+                        capacity: "Standard Capacity",
+                        throughput: "High Throughput Performance",
+                        usage: "Hospital & Pathology Laboratory Diagnostics",
+                        availability: "In Stock - Fast Pan-India Dispatch",
+                        desc: `${formattedTitle} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
+                        images: ["/placeholder.svg"],
+                    };
+                    setProduct(fallbackProd);
+                    setSelectedImage("/placeholder.svg");
+                    setSelectedMedia("image");
+                }
             }
         };
 
         loadProduct();
+        return () => {
+            isMounted = false;
+        };
     }, [slug]);
 
     const handleSubmit = async (e) => {
@@ -311,6 +316,384 @@ ${product?.desc}
         }
     };
 
+    const loadProductImageForPdf = async (imageUrl) => {
+        if (!imageUrl || typeof window === "undefined") return null;
+
+        // Convert any SVG/Blob/URL into raster PNG canvas DataURL for jsPDF
+        try {
+            const res = await fetch(imageUrl, { mode: "cors" });
+            if (res.ok) {
+                const blob = await res.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                const rasterDataUrl = await new Promise((resolve) => {
+                    const img = new window.Image();
+                    img.crossOrigin = "Anonymous";
+                    img.onload = () => {
+                        try {
+                            const canvas = document.createElement("canvas");
+                            const w = img.naturalWidth || img.width || 400;
+                            const h = img.naturalHeight || img.height || 400;
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext("2d");
+                            ctx.fillStyle = "#FFFFFF";
+                            ctx.fillRect(0, 0, w, h);
+                            ctx.drawImage(img, 0, 0, w, h);
+                            const png = canvas.toDataURL("image/png");
+                            URL.revokeObjectURL(blobUrl);
+                            resolve(png);
+                        } catch (err) {
+                            URL.revokeObjectURL(blobUrl);
+                            resolve(null);
+                        }
+                    };
+                    img.onerror = () => {
+                        URL.revokeObjectURL(blobUrl);
+                        resolve(null);
+                    };
+                    img.src = blobUrl;
+                });
+
+                if (rasterDataUrl && rasterDataUrl.startsWith("data:image/png")) {
+                    return rasterDataUrl;
+                }
+            }
+        } catch (e) {
+            console.log("Blob raster fetch error, trying direct image loader:", e);
+        }
+
+        // Direct Image src loader fallback
+        try {
+            return await new Promise((resolve) => {
+                const img = new window.Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement("canvas");
+                        const w = img.naturalWidth || img.width || 400;
+                        const h = img.naturalHeight || img.height || 400;
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL("image/png"));
+                    } catch (err) {
+                        resolve(null);
+                    }
+                };
+                img.onerror = () => resolve(null);
+                img.src = imageUrl;
+            });
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const handleDownloadBrochure = async () => {
+        if (!product) return;
+        try {
+            toast.loading("Generating PDF Brochure...", { id: "pdf-toast" });
+            const { default: jsPDF } = await import("jspdf");
+            const { default: autoTable } = await import("jspdf-autotable");
+
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+
+            // Header Banner (Dark Navy)
+            doc.setFillColor(15, 23, 42); // #0F172A
+            doc.rect(0, 0, pageWidth, 28, 'F');
+
+            // Company Title & Address
+            doc.setTextColor(245, 158, 11); // #F59E0B Amber
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("GLOBAL BIOMEDICAL INC.", 14, 10);
+
+            doc.setTextColor(226, 232, 240);
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.text("Amrapali, Vaishali Nagar, Jaipur, Rajasthan 302021", 14, 16);
+            doc.text("Web: www.globalbiomedical.co.in", 14, 22);
+
+            // Right Contact Phones (All 3 numbers - NO Email)
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "bold");
+            doc.text("+91 9257984336", pageWidth - 14, 9, { align: "right" });
+            doc.text("+91 8529833535", pageWidth - 14, 15, { align: "right" });
+            doc.text("+91 9983301657", pageWidth - 14, 21, { align: "right" });
+
+            // Subtitle Section (Product Title)
+            doc.setTextColor(15, 23, 42);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            const titleLines = doc.splitTextToSize(product.title || "Biomedical Product Specification", pageWidth - 28);
+            doc.text(titleLines, 14, 35);
+            const titleOffsetY = titleLines.length * 5.5;
+
+            // Category Bar
+            doc.setFillColor(217, 119, 6); // Amber #D97706
+            doc.rect(14, 32 + titleOffsetY, pageWidth - 28, 7, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8.5);
+            doc.setFont("helvetica", "bold");
+            doc.text(
+                `TECHNICAL SPECIFICATION SHEET - ${(product.category || "MEDICAL DIAGNOSTIC").toUpperCase()}`,
+                pageWidth / 2,
+                36.8 + titleOffsetY,
+                { align: "center" }
+            );
+
+            const startGridY = 43 + titleOffsetY;
+
+            // Try loading Product Image Base64 (Resolved accurately per product)
+            const rawImg =
+                selectedImage ||
+                product.image ||
+                product.imageUrl ||
+                product.imgUrl ||
+                (product.images && product.images.length > 0 && product.images[0]);
+
+            let targetImgUrl = rawImg;
+            if (!targetImgUrl || targetImgUrl === "/placeholder.svg" || targetImgUrl === "/logo.png") {
+                const titleLower = (product.title || "").toLowerCase();
+                const catLower = (product.category || "").toLowerCase();
+
+                if (
+                    titleLower.includes("abbott") ||
+                    titleLower.includes("hdc") ||
+                    titleLower.includes("blood") ||
+                    titleLower.includes("hematology") ||
+                    catLower.includes("blood")
+                ) {
+                    targetImgUrl = "/hdc_lyte_analyzer.svg";
+                } else if (
+                    titleLower.includes("biochemistry") ||
+                    catLower.includes("biochemistry")
+                ) {
+                    targetImgUrl = "/biochemistry_analyzer.svg";
+                } else {
+                    targetImgUrl = "/hdc_lyte_analyzer.svg";
+                }
+            }
+
+            // 1. Try DOM Ref Capture (Captures the EXACT product image visible on the user's screen!)
+            let imgData = null;
+            if (productImageRef.current && productImageRef.current.complete && productImageRef.current.naturalWidth > 0) {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const w = productImageRef.current.naturalWidth || productImageRef.current.width || 400;
+                    const h = productImageRef.current.naturalHeight || productImageRef.current.height || 400;
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(productImageRef.current, 0, 0, w, h);
+                    const captured = canvas.toDataURL("image/png");
+                    if (captured && captured.length > 100) {
+                        imgData = captured;
+                    }
+                } catch (err) {
+                    console.log("DOM image canvas export error:", err);
+                }
+            }
+
+            // 2. Fallback to loadProductImageForPdf if DOM capture was empty
+            if (!imgData) {
+                imgData = await loadProductImageForPdf(targetImgUrl);
+                if (!imgData && targetImgUrl !== "/hdc_lyte_analyzer.svg") {
+                    imgData = await loadProductImageForPdf("/hdc_lyte_analyzer.svg");
+                }
+            }
+
+            // Image Container Box (Left side)
+            const imgBoxX = 14;
+            const imgBoxW = 58;
+            const imgBoxH = 54;
+
+            doc.setDrawColor(226, 232, 240);
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(imgBoxX, startGridY, imgBoxW, imgBoxH, 3, 3, 'FD');
+
+            if (imgData) {
+                try {
+                    const format = imgData.includes("png") ? "PNG" : "JPEG";
+                    doc.addImage(imgData, format, imgBoxX + 2, startGridY + 2, imgBoxW - 4, imgBoxH - 4);
+                } catch (err) {
+                    console.error("jsPDF addImage error:", err);
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(8);
+                    doc.text("GLOBAL BIOMEDICAL", imgBoxX + 8, startGridY + 28);
+                }
+            } else {
+                doc.setTextColor(100, 116, 139);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                doc.text("GLOBAL BIOMEDICAL", imgBoxX + 6, startGridY + 25);
+                doc.setFontSize(7);
+                doc.setFont("helvetica", "normal");
+                doc.text("PRODUCT IMAGE", imgBoxX + 10, startGridY + 32);
+            }
+
+            // Specifications Table (Right side next to Image)
+            autoTable(doc, {
+                startY: startGridY,
+                margin: { left: 76, right: 14 },
+                tableWidth: pageWidth - 90,
+                head: [["KEY SPECIFICATIONS", "DETAILS"]],
+                body: [
+                    ["Brand", product.brand || "Global Biomedical"],
+                    ["Model Name", product.model || "HDC Series"],
+                    ["Instrument", product.instrument || "Diagnostic Analyzer"],
+                    ["Automation", product.automation || "Fully Automatic"],
+                    ["Test Capacity", product.capacity || "Standard Capacity"],
+                    ["Throughput", product.throughput || "High Speed Performance"],
+                    ["Usage", product.usage || "Pathology & Hospital Labs"],
+                ],
+                theme: "grid",
+                headStyles: {
+                    fillColor: [15, 23, 42],
+                    textColor: [255, 255, 255],
+                    fontStyle: "bold",
+                    fontSize: 8.5,
+                },
+                bodyStyles: {
+                    fontSize: 7.5,
+                    textColor: [30, 41, 59],
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252],
+                },
+            });
+
+            let finalY = Math.max(doc.lastAutoTable.finalY || (startGridY + imgBoxH), startGridY + imgBoxH);
+
+            // Product Overview Box
+            doc.setFillColor(241, 245, 249);
+            doc.rect(14, finalY + 6, pageWidth - 28, 26, 'F');
+
+            doc.setTextColor(15, 23, 42);
+            doc.setFontSize(9.5);
+            doc.setFont("helvetica", "bold");
+            doc.text("PRODUCT OVERVIEW", 18, finalY + 13);
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+            const overviewText =
+                product.desc ||
+                product.description ||
+                `${product.title} is designed for medical laboratories, hospitals and diagnostic centres offering high clinical precision, reliability and workflow efficiency.`;
+            const splitDesc = doc.splitTextToSize(overviewText, pageWidth - 36);
+            doc.text(splitDesc, 18, finalY + 19);
+
+            finalY += 38;
+
+            // Two Column Boxes (Key Applications & Why Choose Us)
+            const colWidth = (pageWidth - 34) / 2;
+
+            // Box 1: Applications
+            doc.setFillColor(15, 23, 42);
+            doc.rect(14, finalY, colWidth, 6.5, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("KEY APPLICATIONS", 18, finalY + 4.5);
+
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, finalY + 6.5, colWidth, 36, 'F');
+            doc.setTextColor(51, 65, 85);
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            const apps = [
+                "• Clinical Pathology Laboratories",
+                "• Hospital Emergency & ICU Wards",
+                "• Pathology & Blood Screening Centers",
+                "• Medical & Academic Institutes",
+                "• Routine Health Check Facilities",
+            ];
+            let appY = finalY + 13;
+            apps.forEach((app) => {
+                doc.text(app, 18, appY);
+                appY += 5.5;
+            });
+
+            // Box 2: Why Choose Global Biomedical
+            doc.setFillColor(15, 23, 42);
+            doc.rect(14 + colWidth + 6, finalY, colWidth, 6.5, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("WHY CHOOSE GLOBAL BIOMEDICAL", 18 + colWidth + 6, finalY + 4.5);
+
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14 + colWidth + 6, finalY + 6.5, colWidth, 36, 'F');
+            doc.setTextColor(51, 65, 85);
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            const whyUs = [
+                "• Certified Biomedical Quality Assurance",
+                "• 100% Genuine Reagents & Spare Parts",
+                "• Professional On-site Setup Support",
+                "• Annual AMC & CMC Service Contracts",
+                "• Fast Pan-India Delivery Support",
+            ];
+            let whyY = finalY + 13;
+            whyUs.forEach((item) => {
+                doc.text(item, 18 + colWidth + 6, whyY);
+                whyY += 5.5;
+            });
+
+            // Footer Banner (Dark Navy)
+            const pageHeight = doc.internal.pageSize.getHeight();
+            doc.setFillColor(15, 23, 42);
+            doc.rect(0, pageHeight - 16, pageWidth, 16, 'F');
+
+            doc.setTextColor(245, 158, 11);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text(
+                "GLOBAL BIOMEDICAL INC. | Tel: +91 9257984336, +91 8529833535, +91 9983301657",
+                pageWidth / 2,
+                pageHeight - 9,
+                { align: "center" }
+            );
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.text(
+                "Amrapali, Vaishali Nagar, Jaipur, Rajasthan 302021 | www.globalbiomedical.co.in",
+                pageWidth / 2,
+                pageHeight - 4,
+                { align: "center" }
+            );
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.text(
+                "Official Technical Product Specification Sheet | www.globalbiomedical.co.in",
+                pageWidth / 2,
+                pageHeight - 4,
+                { align: "center" }
+            );
+
+            // Trigger Direct Download
+            const cleanSlug = (product.slug || "product").replace(/[^a-z0-9]/gi, "_");
+            doc.save(`Global_Biomedical_Brochure_${cleanSlug}.pdf`);
+
+            toast.success("PDF Brochure downloaded successfully!", { id: "pdf-toast" });
+        } catch (err) {
+            console.error("PDF Generation error:", err);
+            toast.error("Failed to generate PDF. Please try again.", { id: "pdf-toast" });
+        }
+    };
+
     useEffect(() => {
         const close = (e) => {
             if (
@@ -427,13 +810,25 @@ ${product?.desc}
                                         <div className="absolute inset-0 bg-slate-100 animate-pulse" />
                                     )}
 
-                                    <Image
-                                        src={selectedImage || product.image}
+                                    <img
+                                        ref={productImageRef}
+                                        src={
+                                            selectedImage ||
+                                            product.image ||
+                                            product.imageUrl ||
+                                            product.imgUrl ||
+                                            product.picture ||
+                                            (product.images && product.images[0]) ||
+                                            "/hdc_lyte_analyzer.svg"
+                                        }
                                         alt={product.title}
-                                        fill
-                                        priority
                                         onLoad={() => setImageLoaded(true)}
-                                        className={`object-contain p-4 transition duration-500 ${imageLoaded
+                                        onError={(e) => {
+                                            e.currentTarget.onerror = null;
+                                            e.currentTarget.src = "/hdc_lyte_analyzer.svg";
+                                            setImageLoaded(true);
+                                        }}
+                                        className={`w-full h-full object-contain p-4 transition duration-500 ${imageLoaded
                                             ? "opacity-100"
                                             : "opacity-0"
                                             }`}
@@ -604,6 +999,16 @@ ${product?.desc}
                             <p><b>Automation:</b> {product.automation || "N/A"}</p>
 
                             <p><b>Availability:</b> {product.availability || "N/A"}</p>
+
+                            <div className="pt-4 border-t border-slate-100">
+                                <button
+                                    onClick={handleDownloadBrochure}
+                                    className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-600 text-white font-extrabold shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition duration-300 cursor-pointer"
+                                >
+                                    <span className="text-xl">📄</span>
+                                    <span>Download Brochure (PDF)</span>
+                                </button>
+                            </div>
 
                         </div>
 

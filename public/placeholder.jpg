@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0369A1" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bgGrad)" />
+
+  <!-- Outer Ring Grid -->
+  <circle cx="400" cy="270" r="210" fill="none" stroke="#F59E0B" stroke-opacity="0.15" stroke-width="2" stroke-dasharray="6,6" />
+  <circle cx="400" cy="270" r="160" fill="none" stroke="#38BDF8" stroke-opacity="0.1" stroke-width="1.5" />
+
+  <!-- Medical Machine Body -->
+  <g filter="url(#shadow)">
+    <!-- Main Chassis -->
+    <rect x="260" y="160" width="280" height="240" rx="24" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="4" />
+
+    <!-- Top Display Screen Frame -->
+    <rect x="290" y="190" width="220" height="120" rx="14" fill="#090D16" stroke="#334155" stroke-width="2" />
+    <rect x="296" y="196" width="208" height="108" rx="10" fill="url(#screenGrad)" />
+
+    <!-- Screen UI Elements (Pulse / Graph) -->
+    <path d="M 310 250 L 340 250 L 350 220 L 365 280 L 380 235 L 395 260 L 410 250 L 490 250" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="450" cy="225" r="8" fill="#F59E0B" />
+    <circle cx="475" cy="225" r="8" fill="#10B981" />
+
+    <!-- Sample Loader Bay / Buttons -->
+    <rect x="290" y="325" width="130" height="55" rx="10" fill="#E2E8F0" />
+    <circle cx="315" cy="352" r="12" fill="#0F172A" />
+    <circle cx="355" cy="352" r="12" fill="#0F172A" />
+    <circle cx="395" cy="352" r="12" fill="#F59E0B" />
+
+    <!-- Reagent Slot -->
+    <rect x="440" y="325" width="70" height="55" rx="10" fill="#0F172A" stroke="#334155" stroke-width="2" />
+    <rect x="455" y="340" width="40" height="25" rx="4" fill="#38BDF8" opacity="0.8" />
+  </g>
+
+  <!-- Watermark & Branding -->
+  <text x="400" y="450" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="22" font-weight="800" letter-spacing="1">
+    GLOBAL BIOMEDICAL
+  </text>
+  <text x="400" y="475" text-anchor="middle" fill="#F59E0B" font-family="system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="2">
+    DIAGNOSTIC &amp; LABORATORY EQUIPMENT
+  </text>
+</svg>
