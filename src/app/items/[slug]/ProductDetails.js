@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import toast from "react-hot-toast";
 
 import { usePathname } from "next/navigation";
@@ -778,9 +779,34 @@ ${product?.desc}
                 }}
             />
             <div className="container-custom">
-                <div className="mb-6 text-sm text-slate-500">
-                    Home / Products / {product.title}
-                </div>
+                <nav aria-label="Breadcrumb" className="mb-6 text-sm text-slate-500">
+                    <ol className="flex items-center gap-2 flex-wrap">
+                        <li>
+                            <Link href="/" className="hover:text-amber-600 transition">Home</Link>
+                        </li>
+                        <li>/</li>
+                        <li>
+                            <Link href="/items" className="hover:text-amber-600 transition">Products</Link>
+                        </li>
+                        {product.category && (
+                            <>
+                                <li>/</li>
+                                <li>
+                                    <Link
+                                        href={`/category/${product.category.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-")}`}
+                                        className="hover:text-amber-600 transition"
+                                    >
+                                        {product.category}
+                                    </Link>
+                                </li>
+                            </>
+                        )}
+                        <li>/</li>
+                        <li className="font-semibold text-slate-800 truncate max-w-[250px] sm:max-w-none">
+                            {product.title}
+                        </li>
+                    </ol>
+                </nav>
                 {/* Top Section */}
 
                 <div className="grid lg:grid-cols-2 gap-12">
