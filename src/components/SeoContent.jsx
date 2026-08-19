@@ -1,5 +1,15 @@
+import Link from "next/link";
+
 export default function SeoContent({ city = "" }) {
     const location = city || "India";
+
+    const popularCategories = [
+        { name: "Hematology Analyzers", slug: "hematology-analyzers" },
+        { name: "Biochemistry Analyzers", slug: "biochemistry-analyzers" },
+        { name: "Electrolyte Analyzers", slug: "electrolyte-analyzers" },
+        { name: "Rapid Test Kits", slug: "rapid-test-kits" },
+        { name: "ELISA Readers", slug: "elisa-readers" },
+    ];
 
     return (
         <section className="py-24 bg-gradient-to-b from-white via-amber-50/30 to-white">
@@ -48,6 +58,30 @@ export default function SeoContent({ city = "" }) {
                         equipment, our team can help you select the right solution.
                     </p>
 
+                    {/* Category Hub Links */}
+                    <div className="my-8 p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3">
+                            Popular Equipment Categories in {location}:
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            {popularCategories.map((cat) => (
+                                <Link
+                                    key={cat.slug}
+                                    href={`/category/${cat.slug}`}
+                                    className="px-3.5 py-1.5 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-slate-800 hover:bg-amber-500 hover:text-black transition"
+                                >
+                                    {cat.name}
+                                </Link>
+                            ))}
+                            <Link
+                                href="/items"
+                                className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-xs font-semibold text-white hover:bg-amber-500 hover:text-black transition"
+                            >
+                                View All Products →
+                            </Link>
+                        </div>
+                    </div>
+
                     <p>
                         Global Biomedical supplies equipment across multiple districts and
                         cities, helping healthcare providers improve testing efficiency and
@@ -79,8 +113,8 @@ export default function SeoContent({ city = "" }) {
 
                         {[
                             {
-                                q: "Do you supply biomedical equipment across India?",
-                                a: "Yes, we supply biomedical and laboratory equipment across multiple districts and cities."
+                                q: `Do you supply biomedical equipment in ${location}?`,
+                                a: `Yes, we supply biomedical and laboratory equipment across ${location} and surrounding districts.`
                             },
                             {
                                 q: "Which laboratory instruments do you provide?",
@@ -117,4 +151,4 @@ export default function SeoContent({ city = "" }) {
 
         </section>
     );
-}
+}

@@ -78,18 +78,35 @@ const jsonLdOrganization = {
   url: "https://globalbiomedical.co.in",
   logo: "https://globalbiomedical.co.in/logo.png",
   description:
-    "Distributor and technical service provider of medical diagnostic equipment, hematology analyzers, and hospital laboratory technology.",
-  contactPoint: {
-    "@type": "ContactPoint",
-    telephone: "+91-9876543210",
-    contactType: "customer service",
-    areaServed: "IN",
-    availableLanguage: ["en", "hi"],
+    "Distributor, supplier, and technical service provider of medical diagnostic equipment, hematology analyzers, biochemistry instruments, and hospital laboratory technology across India.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Amrapali, Vaishali Nagar",
+    addressLocality: "Jaipur",
+    addressRegion: "Rajasthan",
+    postalCode: "302021",
+    addressCountry: "IN",
   },
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      telephone: "+91-9257984336",
+      contactType: "customer service",
+      areaServed: "IN",
+      availableLanguage: ["en", "hi"],
+    },
+    {
+      "@type": "ContactPoint",
+      telephone: "+91-8529833535",
+      contactType: "technical support",
+      areaServed: "IN",
+      availableLanguage: ["en", "hi"],
+    },
+  ],
   sameAs: [
-    "https://facebook.com",
-    "https://instagram.com",
-    "https://linkedin.com",
+    "https://www.facebook.com/people/Global-Biomedicals-Inc/100090524869295/",
+    "https://www.instagram.com/globalbiomedicals/",
+    "https://wa.me/919257984336",
   ],
 };
 

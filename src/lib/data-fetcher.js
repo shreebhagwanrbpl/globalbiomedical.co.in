@@ -187,3 +187,43 @@ export async function fetchDistrictData(district) {
   if (!district) return null;
   return fetchDocCached(`websites/globalbiomedicalcoin/districts/${district}`);
 }
+
+export async function fetchDistrictsRaw() {
+  try {
+    const snap = await getDocs(
+      collection(db, "websites", "globalbiomedicalcoin", "districts")
+    );
+    return snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      slug: doc.data().slug || doc.id,
+    }));
+  } catch (err) {
+    console.error("Error fetching districts raw:", err);
+    return [];
+  }
+}
+
+export async function fetchCategoriesRaw() {
+  try {
+    const snap = await getDocs(
+      collection(
+        db,
+        "websites",
+        "globalbiomedicalcoin",
+        "pages",
+        "categoryproducts",
+        "categories"
+      )
+    );
+    return snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      slug: doc.data().slug || makeSlug(doc.data().category || doc.id),
+    }));
+  } catch (err) {
+    console.error("Error fetching categories raw:", err);
+    return [];
+  }
+}
+

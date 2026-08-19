@@ -1,140 +1,87 @@
-import { db } from "@/lib/firebase";
-import {
-    collection,
-    getDocs,
-    doc,
-    getDoc,
-} from "firebase/firestore";
+import { fetchFullCatalog, fetchDistrictsServer, fetchCategoriesServer } from "@/lib/data-fetcher-server";
+import { evaluateSeoQualityScore } from "@/lib/constants";
+
+export const revalidate = 86400; // Revalidate sitemap daily
 
 export default async function sitemap() {
-    const baseUrl =
-        "https://globalbiomedical.co.in";
+  const baseUrl = "https://globalbiomedical.co.in";
+  const urls = [];
 
-    const urls = [];
+  // Static High-Authority Pages
+  const staticPages = [
+    { url: baseUrl, priority: 1.0, changeFrequency: "daily" },
+    { url: `${baseUrl}/about`, priority: 0.8, changeFrequency: "monthly" },
+    { url: `${baseUrl}/services`, priority: 0.8, changeFrequency: "weekly" },
+    { url: `${baseUrl}/contact`, priority: 0.8, changeFrequency: "monthly" },
+    { url: `${baseUrl}/items`, priority: 0.9, changeFrequency: "daily" },
+  ];
 
-    // Static Pages
-    urls.push(
-        {
-            url: baseUrl,
-            lastModified: new Date(),
-        },
-        {
-            url: `${baseUrl}/about`,
-            lastModified: new Date(),
-        },
-        {
-            url: `${baseUrl}/services`,
-            lastModified: new Date(),
-        },
-        {
-            url: `${baseUrl}/contact`,
-            lastModified: new Date(),
-        },
-        {
-            url: `${baseUrl}/items`,
-            lastModified: new Date(),
-        }
-    );
+  staticPages.forEach((page) => {
+    urls.push({
+      url: page.url,
+      lastModified: new Date(),
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+    });
+  });
 
-    try {
-        // DISTRICTS
-        const districtSnap =
-            await getDocs(
-                collection(
-                    db,
-                    "websites",
-                    "globalbiomedicalcoin",
-                    "districts"
-                )
-            );
+  try {
+    // 1. PRODUCTS (Primary Canonical Pages)
+    const products = await fetchFullCatalog();
+    const seenProductSlugs = new Set();
 
-        const districts =
-            districtSnap.docs.map(
-                (doc) => doc.data()
-            );
+    products.forEach((product) => {
+      const slug = product.slug;
+      if (!slug || seenProductSlugs.has(slug)) return;
+      seenProductSlugs.add(slug);
 
-        districts.forEach((district) => {
-            const slug =
-                district.slug;
+      const quality = evaluateSeoQualityScore({
+        title: product.title,
+        description: product.desc || product.description,
+        content: product.desc || product.title,
+        slug: slug,
+        hasProducts: true,
+      });
 
-            if (!slug) return;
-
-            urls.push(
-                {
-                    url: `${baseUrl}/${slug}`,
-                    lastModified:
-                        new Date(),
-                },
-                {
-                    url: `${baseUrl}/${slug}/about`,
-                    lastModified:
-                        new Date(),
-                },
-                {
-                    url: `${baseUrl}/${slug}/services`,
-                    lastModified:
-                        new Date(),
-                },
-                {
-                    url: `${baseUrl}/${slug}/contact`,
-                    lastModified:
-                        new Date(),
-                },
-                {
-                    url: `${baseUrl}/${slug}/items`,
-                    lastModified:
-                        new Date(),
-                }
-            );
+      if (quality.shouldIncludeInSitemap) {
+        urls.push({
+          url: `${baseUrl}/items/${slug}`,
+          lastModified: new Date(),
+          changeFrequency: "weekly",
+          priority: 0.9,
         });
+      }
+    });
 
-        // PRODUCTS
-        const productDoc =
-            await getDoc(
-                doc(
-                    db,
-                    "websites",
-                    "globalbiomedicalcoin",
-                    "pages",
-                    "products"
-                )
-            );
+    // 2. CATEGORY HUBS
+    const categories = await fetchCategoriesServer();
+    categories.forEach((cat) => {
+      if (!cat.slug) return;
+      urls.push({
+        url: `${baseUrl}/category/${cat.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.8,
+      });
+    });
 
-        const products =
-            productDoc.data()
-                ?.products || [];
+    // 3. DISTRICT LOCATION HUBS (Primary Location URLs only)
+    const districts = await fetchDistrictsServer();
+    districts.forEach((district) => {
+      const slug = district.slug;
+      if (!slug) return;
 
-        products.forEach(
-            (product) => {
-                if (!product.slug) return;
+      // Only include main district hub to ensure high quality signals
+      urls.push({
+        url: `${baseUrl}/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.7,
+      });
+    });
+  } catch (error) {
+    console.error("Sitemap generation error:", error);
+  }
 
-                // Main Product URL
-                urls.push({
-                    url: `${baseUrl}/items/${product.slug}`,
-                    lastModified:
-                        new Date(),
-                });
-
-                // District Product URLs
-                districts.forEach(
-                    (district) => {
-                        if (!district.slug) return;
-
-                        urls.push({
-                            url: `${baseUrl}/${district.slug}/items/${product.slug}`,
-                            lastModified:
-                                new Date(),
-                        });
-                    }
-                );
-            }
-        );
-    } catch (error) {
-        console.error(
-            "Sitemap Error:",
-            error
-        );
-    }
-
-    return urls;
-}
+  return urls;
+}
