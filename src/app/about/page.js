@@ -20,7 +20,7 @@ export default function AboutPage() {
       {/* Banner */}
       <PageBanner
         title="About Global Biomedical"
-        subtitle="Empowering healthcare providers with world-class diagnostic instruments, precision laboratory equipment, and dedicated technical support."
+        subtitle="Helping healthcare teams deliver accurate diagnostics through trustworthy machinery and real technical support."
       />
 
       {/* Main Story & Vision Section */}
@@ -35,35 +35,32 @@ export default function AboutPage() {
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-400">
                 <Sparkles size={16} />
-                <span>Our Heritage & Vision</span>
+                <span>Our Mission & Promise</span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
-                Pioneering Excellence in{" "}
+                Making Medical Diagnostics{" "}
                 <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-                  Biomedical Technology
+                  Simple & Reliable
                 </span>
               </h2>
 
               <p className="text-slate-300 leading-relaxed text-base sm:text-lg">
-                At <span className="font-semibold text-amber-400">Global Biomedical Inc.</span>,
-                we are dedicated to delivering state-of-the-art medical laboratory analyzers,
-                diagnostic systems, and biomedical instruments to hospitals, diagnostic centres,
-                and research institutions across India.
+                At <span className="font-semibold text-amber-400">Global Biomedical</span>,
+                we supply dependable laboratory analyzers, blood testing machines, and medical devices to hospitals and pathology clinics all across India.
               </p>
 
               <p className="text-slate-400 leading-relaxed text-base sm:text-lg">
-                With a steadfast focus on precision engineering, compliance with global health standards,
-                and rapid technical response, we bridge the gap between advanced medical technology and dependable patient diagnostics.
+                We believe that every patient deserves fast, accurate test results. That is why we do not just sell equipment — we deliver total peace of mind with on-site setup, regular machine checkups, and fast technical service.
               </p>
 
               {/* Bullet Points */}
               <div className="grid sm:grid-cols-2 gap-4 pt-4">
                 {[
-                  "ISO Compliant & Certified Systems",
-                  "Nationwide Equipment Delivery",
-                  "Comprehensive AMC / CMC Support",
-                  "Expert Biomedical Engineers",
+                  "ISO Quality Certified Devices",
+                  "Safe & Fast Pan-India Delivery",
+                  "Flexible Annual Service Contracts",
+                  "Skilled On-Call Technicians",
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center">
@@ -90,9 +87,9 @@ export default function AboutPage() {
                 <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6">
                   <ShieldCheck size={28} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Quality Assurance</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Quality Checking</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  Every product undergoes strict multi-stage diagnostic testing before deployment to ensure 99.9% clinical accuracy.
+                  Every machine is double-checked before delivery to ensure reliable, accurate test results for your patients.
                 </p>
               </div>
 
@@ -100,9 +97,9 @@ export default function AboutPage() {
                 <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6">
                   <Wrench size={28} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">After-Sales Engineering</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Technical Service</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  On-site calibration, preventive maintenance, and emergency biomedical support provided round-the-clock.
+                  On-site setup, routine maintenance, and fast repairs whenever your laboratory needs support.
                 </p>
               </div>
 
@@ -110,9 +107,9 @@ export default function AboutPage() {
                 <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6">
                   <Building2 size={28} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Hospital & Lab Partner</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Trusted Partner</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  Trusted by pathology centers, government & private hospital ICUs, and blood bank institutions.
+                  Proudly supporting hospital labs, private diagnostic clinics, and medical research centers.
                 </p>
               </div>
 
@@ -120,9 +117,9 @@ export default function AboutPage() {
                 <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6">
                   <Zap size={28} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Rapid Dispatch</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Quick Shipping</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  Streamlined inventory management ensuring quick shipping of equipment, spare parts, and reagents.
+                  Fast delivery of diagnostic instruments, replacement parts, and daily testing chemicals.
                 </p>
               </div>
             </div>
@@ -137,25 +134,25 @@ export default function AboutPage() {
             <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
               <div className="text-4xl sm:text-5xl font-black text-amber-400">10+</div>
               <p className="mt-2 text-xs sm:text-sm uppercase tracking-widest text-slate-400 font-semibold">
-                Years of Excellence
+                Years of Service
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
               <div className="text-4xl sm:text-5xl font-black text-amber-400">500+</div>
               <p className="mt-2 text-xs sm:text-sm uppercase tracking-widest text-slate-400 font-semibold">
-                Labs Equipped
+                Labs Supported
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
               <div className="text-4xl sm:text-5xl font-black text-amber-400">100%</div>
               <p className="mt-2 text-xs sm:text-sm uppercase tracking-widest text-slate-400 font-semibold">
-                Quality Compliant
+                Quality Tested
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
               <div className="text-4xl sm:text-5xl font-black text-amber-400">24/7</div>
               <p className="mt-2 text-xs sm:text-sm uppercase tracking-widest text-slate-400 font-semibold">
-                Technical Support
+                Help & Support
               </p>
             </div>
           </div>
@@ -167,8 +164,8 @@ export default function AboutPage() {
         <div className="container-custom">
           <SectionTitle
             badge="Our Core Values"
-            title="Driven by Precision & Integrity"
-            description="Our core values guide every equipment supply, technical installation, and ongoing maintenance contract."
+            title="Guided by Honesty & Precision"
+            description="Our values shape how we supply equipment, install machines, and support medical teams every day."
             center
           />
 
@@ -177,9 +174,9 @@ export default function AboutPage() {
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 text-black flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
                 <Award size={32} />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Uncompromising Standard</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">Genuine Quality</h3>
               <p className="text-slate-600 leading-relaxed text-base">
-                We distribute products from world-leading biomedical innovators with rigorous quality check benchmarks.
+                We only offer machinery from reliable makers who meet high safety and accuracy standards.
               </p>
             </div>
 
@@ -187,9 +184,9 @@ export default function AboutPage() {
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 text-black flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
                 <Users size={32} />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Customer-Centric Care</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">Caring Customer Support</h3>
               <p className="text-slate-600 leading-relaxed text-base">
-                We maintain direct lines of communication with lab directors and hospital admin teams to ensure zero downtime.
+                We stay in close touch with lab managers to ensure their machines keep running without unexpected delays.
               </p>
             </div>
 
@@ -197,9 +194,9 @@ export default function AboutPage() {
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 text-black flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
                 <Activity size={32} />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Continuous Innovation</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">Modern Medical Tech</h3>
               <p className="text-slate-600 leading-relaxed text-base">
-                Constantly expanding our analyzer catalog with fully automatic and semi-automatic advanced diagnostic machines.
+                We continuously bring easy-to-use, modern testing tools to pathology labs and medical centers of all sizes.
               </p>
             </div>
           </div>

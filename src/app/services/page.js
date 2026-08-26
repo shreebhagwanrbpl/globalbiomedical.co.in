@@ -23,40 +23,40 @@ import { db } from "@/lib/firebase";
 
 const defaultServices = [
   {
-    title: "Biomedical Equipment Supply & Installation",
-    desc: "Turnkey supply, testing, and professional installation of hematology analyzers, biochemistry units, electrolyte instruments, and ICU equipment.",
+    title: "Equipment Supply & Setup",
+    desc: "We deliver and assemble diagnostic devices right in your lab, making sure everything runs perfectly from day one.",
     icon: <Microscope size={32} />,
-    features: ["Certified OEM Setup", "Calibration Verification", "On-site Staff Training"],
+    features: ["Expert Setup", "Accuracy Testing", "Hands-on Staff Demo"],
   },
   {
-    title: "Diagnostic Analyzer Maintenance (AMC & CMC)",
-    desc: "Comprehensive annual maintenance (AMC) and comprehensive maintenance contracts (CMC) ensuring zero laboratory downtime.",
+    title: "Annual Maintenance (AMC & CMC)",
+    desc: "Scheduled machine checkups and part replacements that keep your lab open and active without surprise costs.",
     icon: <Wrench size={32} />,
-    features: ["Preventive Health Checks", "Original Spare Replacement", "Priority Emergency Visits"],
+    features: ["Routine Health Checks", "Genuine Spare Parts", "Priority Emergency Support"],
   },
   {
-    title: "Laboratory Calibration & QA Testing",
-    desc: "High-precision calibration and quality assurance compliance checks to meet national and international accreditation standards.",
+    title: "Machine Calibration & Quality Care",
+    desc: "Fine-tuning your devices so every test report meets official health guidelines and exact clinical standards.",
     icon: <ShieldCheck size={32} />,
-    features: ["Precision Standard Control", "Audit-Ready Certificates", "Validation Reports"],
+    features: ["Precision Testing", "Audit Compliance Papers", "Quality Reports"],
   },
   {
-    title: "Reagents & Medical Consumables Supply",
-    desc: "Timely nationwide supply of high-grade diagnostic reagents, controls, calibrators, and hospital laboratory consumables.",
+    title: "Lab Reagents & Daily Supplies",
+    desc: "Timely delivery of fresh testing chemicals and lab supplies stored at ideal temperatures.",
     icon: <FlaskConical size={32} />,
-    features: ["Cold-Chain Managed Logistics", "Batch-Verified Stock", "Bulk Supply Discounts"],
+    features: ["Cold-Chain Delivery", "Fresh Verified Stock", "Bulk Order Savings"],
   },
   {
-    title: "Technical Consultation & Lab Planning",
-    desc: "Expert layout planning, electrical/plumbing design, and equipment selection advice for new diagnostic centres and pathology labs.",
+    title: "Smart Lab Planning Assistance",
+    desc: "Friendly guidance on picking the best equipment and designing a comfortable, fast lab workspace.",
     icon: <Stethoscope size={32} />,
-    features: ["Workflow Optimization", "Space & Power Audit", "Cost-Effective Solutions"],
+    features: ["Workflow Optimization", "Space & Power Check", "Budget-Friendly Options"],
   },
   {
-    title: "24/7 Breakdown & Repair Assistance",
-    desc: "Rapid breakdown response team equipped with diagnostic tools to resolve technical glitches and hardware failures quickly.",
+    title: "Quick Repair & Technical Response",
+    desc: "Fast-acting technicians on call to fix unexpected hardware bugs or machine errors in your lab.",
     icon: <Activity size={32} />,
-    features: ["Rapid On-call Support", "Loaner Unit Availability", "Expert Technical Advice"],
+    features: ["Fast On-Call Visits", "Backup Machine Support", "Clear Technical Advice"],
   },
 ];
 
@@ -99,17 +99,17 @@ export default function ServicesPage() {
     <>
       {/* Banner */}
       <PageBanner
-        title="Our Biomedical Services"
-        subtitle="End-to-end technical support, equipment maintenance, calibration, and hospital laboratory solutions engineered for peak clinical reliability."
+        title="Our Diagnostic & Technical Services"
+        subtitle="Clear, reliable medical machine supply, setup, maintenance, and reagent delivery tailored for healthcare providers."
       />
 
       {/* Services Grid Section */}
       <section className="section-padding bg-slate-50">
         <div className="container-custom">
           <SectionTitle
-            badge="What We Provide"
-            title="Comprehensive Healthcare & Biomedical Services"
-            description="From equipment installation to maintenance and emergency calibration, we power modern laboratories with complete technical assurance."
+            badge="Services We Provide"
+            title="Services Built for Smooth Lab Operations"
+            description="From getting your first diagnostic machine to keeping it running in top shape, we handle the hard technical details."
             center
           />
 
@@ -164,9 +164,9 @@ export default function ServicesPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px]" />
         <div className="container-custom relative z-10">
           <SectionTitle
-            badge="Execution Process"
-            title="How We Deliver Biomedical Support"
-            description="A systematic multi-step service framework designed for zero downtime and full audit compliance."
+            badge="Simple Step-by-Step"
+            title="How We Support Your Laboratory"
+            description="A clear 4-step process designed to get your lab running fast and keep it operating without hiccups."
             center
           />
 
@@ -174,26 +174,26 @@ export default function ServicesPage() {
             {[
               {
                 step: "01",
-                title: "Requirement Audit",
-                desc: "Assessing lab workload, instrument specifications, and space/power parameters.",
+                title: "Understanding Needs",
+                desc: "Talking with your team to pick the right machinery for your daily patient volume.",
                 icon: <Clock size={24} />,
               },
               {
                 step: "02",
-                title: "Equipment Delivery",
-                desc: "Safely transporting calibrated analyzers with protective packaging and documentation.",
+                title: "Safe Delivery",
+                desc: "Carefully transporting your calibrated testing units with full protective packaging.",
                 icon: <Zap size={24} />,
               },
               {
                 step: "03",
-                title: "Installation & Demo",
-                desc: "Setting up machines, running standard controls, and training laboratory technicians.",
+                title: "Setup & Demonstration",
+                desc: "Installing the machines in your lab and showing your staff how to use them easily.",
                 icon: <Settings size={24} />,
               },
               {
                 step: "04",
-                title: "24/7 AMC Maintenance",
-                desc: "Scheduled preventive maintenance and priority emergency breakdown assistance.",
+                title: "Ongoing Care",
+                desc: "Regular checkups and fast assistance whenever you need help or spare parts.",
                 icon: <PhoneCall size={24} />,
               },
             ].map((item, index) => (

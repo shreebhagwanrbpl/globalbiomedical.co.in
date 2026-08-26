@@ -182,8 +182,8 @@ export default function ContactPage() {
     <>
       {/* Page Banner */}
       <PageBanner
-        title="Contact Global Biomedical"
-        subtitle={`Reach out to our regional biomedical support and sales team in ${selectedDistrict} or across India.`}
+        title="Connect With Our Team"
+        subtitle={`Reach out to our friendly biomedical support and sales team in ${selectedDistrict} or anywhere across India.`}
       />
 
       {/* Main Contact & District Location Section */}
@@ -197,11 +197,11 @@ export default function ContactPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
-                  Select Regional District / Branch
+                  Select Your City / District Branch
                 </span>
                 <h3 className="text-2xl font-bold text-white mt-1 flex items-center gap-2">
                   <Building2 size={24} className="text-amber-400" />
-                  <span>Biomedical Support Hub: {selectedDistrict}</span>
+                  <span>Support Center: {selectedDistrict}</span>
                 </h3>
               </div>
 
@@ -254,7 +254,7 @@ export default function ContactPage() {
               </h2>
 
               <p className="text-slate-400 leading-relaxed text-base">
-                Whether you need analyzer quotes, technical installation in {selectedDistrict}, or AMC service, our biomedical experts are ready to assist.
+                Whether you need price quotes, machine setup in {selectedDistrict}, or routine maintenance, our team is ready to help.
               </p>
 
               <div className="space-y-4 pt-4">
@@ -263,25 +263,25 @@ export default function ContactPage() {
                     icon: <Phone size={22} />,
                     title: "Phone Number",
                     value: phone,
-                    sub: "Call or WhatsApp for immediate enquiry",
+                    sub: "Call or WhatsApp us anytime for quick answers",
                   },
                   {
                     icon: <Mail size={22} />,
                     title: "Email Address",
                     value: email,
-                    sub: "Send official RFQs & purchase orders",
+                    sub: "Send official requests and purchase orders",
                   },
                   {
                     icon: <MapPin size={22} />,
                     title: `District Office (${selectedDistrict})`,
                     value: displayAddress,
-                    sub: `Serving hospitals & diagnostic labs in ${selectedDistrict}`,
+                    sub: `Supporting clinics & pathology labs in ${selectedDistrict}`,
                   },
                   {
                     icon: <Clock3 size={22} />,
                     title: "Working Hours",
                     value: hours,
-                    sub: "Emergency technical breakdown support available",
+                    sub: "Emergency repair help available whenever needed",
                   },
                 ].map((item, index) => (
                   <div
@@ -307,7 +307,7 @@ export default function ContactPage() {
                 Send Us a Message
               </h3>
               <p className="text-slate-400 text-sm mb-8">
-                Fill in your details below to receive a custom quote for {selectedDistrict}.
+                Fill out the quick form below to receive a custom price estimate for {selectedDistrict}.
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">

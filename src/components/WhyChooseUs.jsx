@@ -14,27 +14,27 @@ export default function WhyChooseUs() {
   const features = [
     {
       icon: <Microscope size={30} />,
-      title: "Advanced Technology",
+      title: "Top-Tier Testing Gear",
       description:
-        "Modern biomedical and diagnostic equipment for accurate healthcare solutions.",
+        "Modern diagnostic machines that give clear, accurate patient results every single time.",
     },
     {
       icon: <ShieldCheck size={30} />,
-      title: "Trusted Quality",
+      title: "Quality You Can Count On",
       description:
-        "Reliable and certified diagnostic systems with premium quality standards.",
+        "Thoroughly tested medical equipment backed by official industry certifications.",
     },
     {
       icon: <HeartPulse size={30} />,
-      title: "Healthcare Focused",
+      title: "Healthcare First Approach",
       description:
-        "Delivering healthcare-driven biomedical solutions with precision and care.",
+        "Solutions shaped around what modern hospitals and local pathology labs actually need.",
     },
     {
       icon: <BadgeCheck size={30} />,
-      title: "Expert Support",
+      title: "Friendly Technical Team",
       description:
-        "Professional consultation and technical support for all medical needs.",
+        "Real engineers who guide you through choosing, setting up, and fixing your instruments.",
     },
   ];
 
@@ -49,9 +49,9 @@ export default function WhyChooseUs() {
 
         {/* Section Title */}
         <SectionTitle
-          badge="Why Choose Us"
-          title="Trusted Biomedical Excellence"
-          description="We deliver innovative diagnostic technologies and biomedical solutions with precision, trust, and unmatched service quality."
+          badge="Why Partner With Us"
+          title="Simple, Dependable Medical Support"
+          description="We take the stress out of buying and maintaining diagnostic machinery so your medical team can focus on patient care."
           center
         />
 

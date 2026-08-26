@@ -37,25 +37,18 @@ export default function SeoContent({ city = "" }) {
                 <div className="space-y-8 text-lg leading-8 text-gray-600">
 
                     <p>
-                        Global Biomedical is a trusted supplier of biomedical and laboratory
-                        equipment in <strong className="text-amber-700">{location}</strong>.
-                        We provide CBC Machines, Hematology Analyzers, Biochemistry
-                        Analyzers, Urine Analyzers, ELISA Readers, and diagnostic
-                        instruments for hospitals, pathology labs, and healthcare facilities.
+                        Global Biomedical is a reliable provider of laboratory devices and testing gear in <strong className="text-amber-700">{location}</strong>.
+                        We supply CBC blood counters, biochemistry testing units, electrolyte readers, urine test machines, and daily lab supplies for hospitals and pathology clinics.
                     </p>
 
                     <p>
-                        Our mission is to provide reliable, high-quality laboratory equipment
-                        to healthcare professionals across India. We work with diagnostic
-                        centres, hospitals, research laboratories, and medical institutions
-                        to deliver advanced biomedical solutions.
+                        Our goal is simple: to make sure medical teams across India have easy access to dependable diagnostic tools.
+                        We work closely with local path labs, private hospitals, and research facilities to deliver reliable equipment that keeps patients safe.
                     </p>
 
                     <p>
-                        We offer installation assistance, product guidance, and technical
-                        support for a wide range of laboratory instruments. Whether you are
-                        setting up a new diagnostic laboratory or upgrading existing
-                        equipment, our team can help you select the right solution.
+                        We take care of setting up your machinery, showing your staff how it works, and providing ongoing repair service.
+                        Whether you are starting a new clinic or replacing old diagnostic units, our friendly team helps you choose the exact match for your needs.
                     </p>
 
                     {/* Category Hub Links */}
@@ -83,9 +76,7 @@ export default function SeoContent({ city = "" }) {
                     </div>
 
                     <p>
-                        Global Biomedical supplies equipment across multiple districts and
-                        cities, helping healthcare providers improve testing efficiency and
-                        diagnostic accuracy.
+                        Global Biomedical delivers diagnostic gear across multiple districts and towns, helping local healthcare providers deliver faster and more accurate lab reports every day.
                     </p>
 
                 </div>
@@ -113,20 +104,20 @@ export default function SeoContent({ city = "" }) {
 
                         {[
                             {
-                                q: `Do you supply biomedical equipment in ${location}?`,
-                                a: `Yes, we supply biomedical and laboratory equipment across ${location} and surrounding districts.`
+                                q: `Do you deliver lab machinery in ${location}?`,
+                                a: `Yes, we deliver and install medical testing equipment across ${location} and nearby areas.`
                             },
                             {
-                                q: "Which laboratory instruments do you provide?",
-                                a: "We provide CBC Machines, Hematology Analyzers, Biochemistry Analyzers, ELISA Readers, Urine Analyzers, and other diagnostic equipment."
+                                q: "What kind of diagnostic devices do you supply?",
+                                a: "We supply CBC blood counters, biochemistry analyzers, electrolyte readers, ELISA equipment, and daily lab reagents."
                             },
                             {
-                                q: "Do you provide installation support?",
-                                a: "Yes, installation assistance and technical support are available depending on location and equipment type."
+                                q: "Will someone help set up the machine in our lab?",
+                                a: "Yes! Our technicians visit your lab to install the machine, test it, and train your staff on how to use it smoothly."
                             },
                             {
-                                q: "Who can purchase biomedical equipment?",
-                                a: "Hospitals, pathology labs, diagnostic centres, research laboratories, and healthcare facilities can purchase equipment from us."
+                                q: "Who can order equipment from Global Biomedical?",
+                                a: "Hospitals, pathology labs, diagnostic clinics, blood banks, and medical research centers can order directly from us."
                             }
                         ].map((faq, index) => (
                             <div

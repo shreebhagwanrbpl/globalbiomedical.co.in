@@ -24,8 +24,8 @@ export default function HeroSection({ city }) {
   const [loading, setLoading] = useState(true);
 
   const [heroData, setHeroData] = useState({
-    title: "Advanced Biomedical & Laboratory Equipment",
-    description: "Supplying fully automatic blood analyzers, biochemistry instruments, and pathology lab equipment across India with 24/7 technical support.",
+    title: "Dependable Medical Instruments & Laboratory Tech",
+    description: "We help medical clinics, pathology labs, and diagnostic centers across India get reliable, easy-to-use testing equipment and fast technical assistance whenever they need it.",
     button1Text: "Explore Products",
     button2Text: "Get Quick Quote",
   });
@@ -81,7 +81,7 @@ export default function HeroSection({ city }) {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
             </span>
             <ShieldCheck size={16} className="text-amber-400" />
-            <span>ISO Certified Biomedical Technology</span>
+            <span>ISO Certified Medical Technology & Fast Support</span>
           </div>
 
           {/* Heading */}
@@ -136,24 +136,24 @@ export default function HeroSection({ city }) {
           <div className="grid grid-cols-2 gap-3 pt-6 border-t border-slate-800/80 text-xs sm:text-sm text-slate-300 font-medium">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-amber-400 flex-shrink-0" />
-              <span>Full Installation & On-site Demo</span>
+              <span>On-site Machine Setup & Staff Guidance</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-amber-400 flex-shrink-0" />
-              <span>Annual AMC / CMC Technical Warranty</span>
+              <span>Annual Service Contracts for Zero Downtime</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-amber-400 flex-shrink-0" />
-              <span>Pan-India Temperature Controlled Logistics</span>
+              <span>Safe Delivery with Temperature Care</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-amber-400 flex-shrink-0" />
-              <span>24/7 Breakdown Response Engineering</span>
+              <span>24/7 Technician Help for Any Fixes</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Column: High Tech Interactive Grid (Replaces old image) */}
+        {/* Right Column: High Tech Interactive Grid */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -167,7 +167,7 @@ export default function HeroSection({ city }) {
             </div>
             <h3 className="text-lg font-bold text-white mb-1">Blood Analyzers</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              3-Part & 5-Part differential hematology cells counters with auto-sampler support.
+              High-accuracy blood cell counters designed for quick and clear patient testing.
             </p>
           </div>
 
@@ -178,7 +178,7 @@ export default function HeroSection({ city }) {
             </div>
             <h3 className="text-lg font-bold text-white mb-1">Biochemistry Units</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Fully automated & semi-automatic photometric analyzers with reagent cooling.
+              Smooth testing systems built for automated chemical panels and routine checks.
             </p>
           </div>
 
@@ -187,9 +187,9 @@ export default function HeroSection({ city }) {
             <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
               <Wrench size={24} />
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">Calibration & AMC</h3>
+            <h3 className="text-lg font-bold text-white mb-1">Servicing & Care</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Comprehensive preventive maintenance and certified calibration services.
+              Regular machine tune-ups and quick technical fixes to prevent lab downtime.
             </p>
           </div>
 
@@ -198,9 +198,9 @@ export default function HeroSection({ city }) {
             <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
               <Zap size={24} />
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">Rapid Dispatch</h3>
+            <h3 className="text-lg font-bold text-white mb-1">Speed Dispatch</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Guaranteed fast shipment of diagnostic reagents, spare parts, and accessories.
+              Fast shipping for machines, replacement parts, and daily testing chemicals.
             </p>
           </div>
         </motion.div>

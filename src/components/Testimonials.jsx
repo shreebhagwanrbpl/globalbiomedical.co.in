@@ -7,21 +7,21 @@ export default function Testimonials() {
   const reviews = [
     {
       name: "Dr. Rajesh Kumar",
-      role: "Healthcare Specialist",
+      role: "Pathology Specialist",
       review:
-        "Global Biomedical has consistently delivered reliable diagnostic equipment with outstanding support.",
+        "The equipment is solid, but what truly impresses us is their quick support team whenever we have a question.",
     },
     {
       name: "Amit Sharma",
-      role: "Lab Director",
+      role: "Lab Operations Director",
       review:
-        "Professional service, premium products, and excellent biomedical consultation experience.",
+        "They made setting up our new pathology center completely stress-free. Very straightforward service.",
     },
     {
       name: "Neha Verma",
-      role: "Research Head",
+      role: "Diagnostic Lab Head",
       review:
-        "Their healthcare solutions improved our laboratory efficiency significantly.",
+        "Our lab runs smoothly without machine breakdowns thanks to their routine maintenance service.",
     },
   ];
 
@@ -35,9 +35,9 @@ export default function Testimonials() {
       <div className="container-custom relative z-10">
 
         <SectionTitle
-          badge="Testimonials"
-          title="What Our Clients Say"
-          description="Trusted by healthcare professionals, laboratories, and biomedical institutions."
+          badge="Client Reviews"
+          title="Hear From Lab Owners & Doctors"
+          description="See how we help medical facilities deliver fast, accurate test results day after day."
           center
         />
 
