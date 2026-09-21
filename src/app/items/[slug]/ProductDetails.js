@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -866,36 +865,37 @@ ${product?.desc}
                         </div>
 
                         <div className="flex flex-wrap gap-3 mt-5">
-
-                            {(product.images?.length
+                            {(Array.isArray(product.images) && product.images.length > 0
                                 ? product.images
-                                : [product.image]
-                            ).map((img, index) => (
-
-                                <button
-                                    key={index}
-                                    onClick={() => {
-                                        setSelectedImage(img);
-                                        setSelectedMedia("image");
-                                    }}
-                                    className={`w-20 h-20 rounded-xl overflow-hidden border-2 ${selectedMedia === "image" &&
-                                        selectedImage === img
-                                        ? "border-sky-600"
-                                        : "border-gray-200"
+                                : product.image
+                                ? [product.image]
+                                : ["/hdc_lyte_analyzer.svg"]
+                            )
+                                .filter((img) => typeof img === "string" && img.trim().length > 0)
+                                .map((img, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            setSelectedImage(img);
+                                            setSelectedMedia("image");
+                                        }}
+                                        className={`w-20 h-20 rounded-xl overflow-hidden border-2 cursor-pointer transition ${
+                                            selectedMedia === "image" && selectedImage === img
+                                                ? "border-amber-500 shadow-sm"
+                                                : "border-gray-200 hover:border-gray-300"
                                         }`}
-                                >
-
-                                    <Image
-                                        src={img}
-                                        alt=""
-                                        width={80}
-                                        height={80}
-                                        className="w-full h-full object-cover"
-                                    />
-
-                                </button>
-
-                            ))}
+                                    >
+                                        <img
+                                            src={img}
+                                            alt={product.title || "Product thumbnail"}
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = "/hdc_lyte_analyzer.svg";
+                                            }}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </button>
+                                ))}
 
                             {product.video && (
 
@@ -1156,70 +1156,6 @@ ${product?.desc}
                                     product.description ||
                                     "No description available."}
                             </p>
-
-                            {/* Specifications Table */}
-
-                            <div className="mt-10 overflow-x-auto">
-                                <table className="w-full border border-slate-200">
-                                    <tbody>
-
-                                        <tr>
-                                            <td className="border p-3 font-semibold">
-                                                Brand
-                                            </td>
-                                            <td className="border p-3">
-                                                {product.brand || "N/A"}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td className="border p-3 font-semibold">
-                                                Model
-                                            </td>
-                                            <td className="border p-3">
-                                                {product.model || "N/A"}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td className="border p-3 font-semibold">
-                                                Usage
-                                            </td>
-                                            <td className="border p-3">
-                                                {product.usage || "N/A"}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td className="border p-3 font-semibold">
-                                                Automation
-                                            </td>
-                                            <td className="border p-3">
-                                                {product.automation || "N/A"}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td className="border p-3 font-semibold">
-                                                Capacity
-                                            </td>
-                                            <td className="border p-3">
-                                                {product.capacity || "N/A"}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td className="border p-3 font-semibold">
-                                                Throughput
-                                            </td>
-                                            <td className="border p-3">
-                                                {product.throughput || "N/A"}
-                                            </td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
-                            </div>
 
                             {/* SEO Content */}
 

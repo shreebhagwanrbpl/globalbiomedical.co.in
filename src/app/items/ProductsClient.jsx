@@ -11,11 +11,11 @@ import {
   Search,
   ChevronRight,
   ChevronUp,
+  RefreshCw,
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import PageBanner from "@/components/PageBanner";
 import SectionTitle from "@/components/SectionTitle";
-// import CTASection from "@/components/CTASection";
 import ProductCard from "@/components/ProductCard";
 
 // 1. Memoized Product Link Component
@@ -59,16 +59,15 @@ const SubCategoryItem = memo(function SubCategoryItem({
 
       {/* Product List Wrapper */}
       <div
-        className={`transition-all duration-300 ease-in-out pl-3 overflow-hidden ${isSubOpened
-          ? "max-h-48 opacity-100 mt-1 mb-2"
-          : "max-h-0 opacity-0"
-          }`}
+        className={`transition-all duration-300 ease-in-out pl-3 overflow-hidden ${
+          isSubOpened ? "max-h-48 opacity-100 mt-1 mb-2" : "max-h-0 opacity-0"
+        }`}
       >
         {isSubOpened && (
           <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1.5 pr-1">
             {subList.map((item) => (
               <ProductLink
-                key={item.uid}
+                key={item.uid || item.id}
                 item={item}
                 category={category}
                 scrollToProduct={scrollToProduct}
@@ -97,29 +96,35 @@ const CategoryItem = memo(function CategoryItem({
     <div className="group">
       <button
         onClick={() => toggleCategory(category)}
-        className={`sticky top-[116px] z-10 w-full px-4 py-3 flex justify-between items-center rounded-2xl transition-all duration-200 text-left ${isActive
-          ? "bg-amber-500/10 text-amber-400 font-bold"
-          : "bg-white text-slate-700 hover:bg-slate-50 hover:text-amber-400"
-          }`}
+        className={`sticky top-[116px] z-10 w-full px-4 py-3 flex justify-between items-center rounded-2xl transition-all duration-200 text-left ${
+          isActive
+            ? "bg-amber-500/10 text-amber-400 font-bold"
+            : "bg-white text-slate-700 hover:bg-slate-50 hover:text-amber-400"
+        }`}
       >
         <span className="flex items-center gap-3 text-sm font-semibold leading-none">
           <span className={`transition-transform duration-200 ${isOpened ? "rotate-90" : ""}`}>
-            <ChevronRight size={16} className={isActive ? "text-amber-400" : "text-slate-400 group-hover:text-amber-400"} />
+            <ChevronRight
+              size={16}
+              className={isActive ? "text-amber-400" : "text-slate-400 group-hover:text-amber-400"}
+            />
           </span>
           {category}
         </span>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isActive ? "bg-amber-500/10 text-yellow-500" : "bg-slate-100 text-slate-500"
-          }`}>
+        <span
+          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+            isActive ? "bg-amber-500/10 text-yellow-500" : "bg-slate-100 text-slate-500"
+          }`}
+        >
           {categoryProductCount}
         </span>
       </button>
 
       {/* Subcategories Wrapper */}
       <div
-        className={`transition-all duration-300 ease-in-out pl-4 overflow-hidden ${isOpened
-          ? "max-h-[1000px] opacity-100 mt-2 mb-4"
-          : "max-h-0 opacity-0"
-          }`}
+        className={`transition-all duration-300 ease-in-out pl-4 overflow-hidden ${
+          isOpened ? "max-h-[1000px] opacity-100 mt-2 mb-4" : "max-h-0 opacity-0"
+        }`}
       >
         {isOpened && (
           <div className="space-y-3 pt-1">
@@ -147,6 +152,10 @@ const CategoryItem = memo(function CategoryItem({
 });
 
 export default function ProductsClient({ initialProducts = [], district = null, city = null }) {
+  // Live State
+  const [products, setProducts] = useState(initialProducts);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const [categorySearch, setCategorySearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [productSearch, setProductSearch] = useState("");
@@ -155,6 +164,64 @@ export default function ProductsClient({ initialProducts = [], district = null, 
   const [openedSubCategories, setOpenedSubCategories] = useState({});
   const [pendingScroll, setPendingScroll] = useState(null);
   const [showTopButton, setShowTopButton] = useState(false);
+
+  // Sync initialProducts prop updates
+  useEffect(() => {
+    if (Array.isArray(initialProducts)) {
+      setProducts(initialProducts);
+    }
+  }, [initialProducts]);
+
+  // Real-time zero-delay live sync with SuperAdmin Master Catalog
+  const syncLiveCatalog = useCallback(async (showIndicator = false) => {
+    if (showIndicator) setIsSyncing(true);
+    try {
+      const res = await fetch(`/api/catalog?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Pragma": "no-cache",
+          "Cache-Control": "no-cache",
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.products)) {
+          setProducts((prev) => {
+            const prevIds = prev.map((p) => p.id || p.uid).join(",");
+            const nextIds = data.products.map((p) => p.id || p.uid).join(",");
+            if (prevIds !== nextIds || prev.length !== data.products.length) {
+              return data.products;
+            }
+            return prev;
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Background catalog live sync note:", err);
+    } finally {
+      if (showIndicator) setIsSyncing(false);
+    }
+  }, []);
+
+  // Window Focus & 3-Second Live Polling Loop
+  useEffect(() => {
+    // 1. Initial background fetch to ensure latest Master Catalog data
+    syncLiveCatalog();
+
+    // 2. Window Focus event listener (Instant update when switching back from SuperAdmin tab)
+    const onFocus = () => syncLiveCatalog();
+    window.addEventListener("focus", onFocus);
+
+    // 3. 3-Second Live Polling Interval
+    const interval = setInterval(() => {
+      syncLiveCatalog();
+    }, 3000);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      clearInterval(interval);
+    };
+  }, [syncLiveCatalog]);
 
   // Debounce search term updates to make search typing instant
   useEffect(() => {
@@ -169,22 +236,22 @@ export default function ProductsClient({ initialProducts = [], district = null, 
     const start = performance.now();
     const query = productSearch.trim().toLowerCase();
     const filtered = query
-      ? initialProducts.filter((item) => {
-        const title = (item.title || "").toLowerCase();
-        const brand = (item.brand || "").toLowerCase();
-        const model = (item.model || "").toLowerCase();
-        const category = (item.category || "").toLowerCase();
-        const subCategory = (item.subCategory || "").toLowerCase();
+      ? products.filter((item) => {
+          const title = (item.title || item.name || "").toLowerCase();
+          const brand = (item.brand || "").toLowerCase();
+          const model = (item.model || "").toLowerCase();
+          const category = (item.category || "").toLowerCase();
+          const subCategory = (item.subCategory || "").toLowerCase();
 
-        return (
-          title.includes(query) ||
-          brand.includes(query) ||
-          model.includes(query) ||
-          category.includes(query) ||
-          subCategory.includes(query)
-        );
-      })
-      : initialProducts;
+          return (
+            title.includes(query) ||
+            brand.includes(query) ||
+            model.includes(query) ||
+            category.includes(query) ||
+            subCategory.includes(query)
+          );
+        })
+      : products;
 
     const grouped = {};
     const counts = {};
@@ -224,18 +291,23 @@ export default function ProductsClient({ initialProducts = [], district = null, 
     }
 
     const end = performance.now();
-    console.log(`[ProductsClient] Grouping, filtering, and sorting completed in ${(end - start).toFixed(2)}ms`);
+    console.log(
+      `[ProductsClient] Grouping, filtering, and sorting completed in ${(end - start).toFixed(2)}ms`
+    );
 
     return {
       filteredProducts: filtered,
       sortedGroupedProducts: sortedObj,
       categoryCounts: counts,
     };
-  }, [initialProducts, productSearch]);
+  }, [products, productSearch]);
 
-  const getCategoryProductCount = useCallback((categoryName) => {
-    return categoryCounts[categoryName] || 0;
-  }, [categoryCounts]);
+  const getCategoryProductCount = useCallback(
+    (categoryName) => {
+      return categoryCounts[categoryName] || 0;
+    },
+    [categoryCounts]
+  );
 
   const toggleCategory = useCallback((category) => {
     setOpenedCategory((prev) => (prev === category ? "" : category));
@@ -249,21 +321,24 @@ export default function ProductsClient({ initialProducts = [], district = null, 
     }));
   }, []);
 
-  const scrollToProduct = useCallback((slug, category) => {
-    setOpenedCategory(category);
-    setActiveCategory(category);
-    setPendingScroll(slug);
+  const scrollToProduct = useCallback(
+    (slug, category) => {
+      setOpenedCategory(category);
+      setActiveCategory(category);
+      setPendingScroll(slug);
 
-    // Auto-expand the target subcategory when scrolling to its product
-    const prod = initialProducts.find((p) => p.slug === slug);
-    if (prod && prod.subCategory) {
-      const subKey = `${category}-${prod.subCategory}`;
-      setOpenedSubCategories((prev) => ({
-        ...prev,
-        [subKey]: true,
-      }));
-    }
-  }, [initialProducts]);
+      // Auto-expand the target subcategory when scrolling to its product
+      const prod = products.find((p) => p.slug === slug);
+      if (prod && prod.subCategory) {
+        const subKey = `${category}-${prod.subCategory}`;
+        setOpenedSubCategories((prev) => ({
+          ...prev,
+          [subKey]: true,
+        }));
+      }
+    },
+    [products]
+  );
 
   // Scroll to selected sidebar item when category expansion finishes
   useEffect(() => {
@@ -300,28 +375,12 @@ export default function ProductsClient({ initialProducts = [], district = null, 
     });
   };
 
-  // Measure hydration completion time
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.performance) {
-      const navigationStart = window.performance.timing?.navigationStart || 0;
-      if (navigationStart) {
-        const timeSinceNavigation = Date.now() - navigationStart;
-        console.log(`[ProductsClient] Hydration completed in ${timeSinceNavigation}ms since navigation start`);
-      }
-    }
-  }, []);
-
   const onRenderCallback = (id, phase, actualDuration) => {
     console.log(`[React Profiler] ${id} render time (${phase}): ${actualDuration.toFixed(2)}ms`);
   };
 
   return (
     <Profiler id="ProductsLayout" onRender={onRenderCallback}>
-      {/* Banner */}
-      <PageBanner
-        title={city ? `Our Products in ${city}` : "Our Products"}
-        subtitle="Explore advanced biomedical and diagnostic equipment designed for modern healthcare excellence."
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -353,61 +412,18 @@ export default function ProductsClient({ initialProducts = [], district = null, 
         }}
       />
 
-      {/* HERO */}
-
-      <section className="relative pt-32 pb-24 overflow-hidden">
-
-        <div className="absolute top-0 left-0 w-96 h-96 bg-violet-100 blur-3xl rounded-full"></div>
-
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-500/10 blur-3xl rounded-full"></div>
-
-        <div className="max-w-7xl mx-auto px-5 relative z-10">
-
-          <div className="text-center max-w-5xl mx-auto">
-
-            <span className="inline-flex items-center rounded-full bg-violet-100 px-5 py-2 text-sm font-semibold text-violet-700">
-
-              Global Biomedical
-
-            </span>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 35 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: .7 }}
-              className="mt-8 text-5xl lg:text-7xl font-bold leading-tight"
-            >
-
-              {city
-                ? `Buy Medical Laboratory Equipment in ${city}`
-                : "Medical Laboratory Equipment"}
-
-            </motion.h1>
-
-            <p className="mt-8 text-xl text-slate-600 leading-9">
-
-              Premium laboratory instruments,
-              diagnostic systems and hospital equipment.
-
-            </p>
-
-          </div>
-
-        </div>
-
-      </section>
       {/* Products */}
       <section className="section-padding bg-white">
         <div className="container-custom">
           <SectionTitle
-            badge="Featured Products"
+            badge="Master Catalog"
             title="Premium Biomedical Equipment"
             description="Discover high-quality diagnostic and biomedical technologies tailored for laboratories, healthcare institutions, and modern diagnostics."
             center
           />
         </div>
 
-        {/* Search */}
+        {/* Search & Sync Status */}
         <div className="max-w-2xl mx-auto mt-6 lg:mt-10 px-4 lg:px-0 relative">
           <Search
             size={22}
@@ -419,8 +435,14 @@ export default function ProductsClient({ initialProducts = [], district = null, 
             placeholder="Search products..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full h-16 pl-14 pr-5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full h-16 pl-14 pr-12 rounded-2xl border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
+
+          {isSyncing && (
+            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-amber-500 animate-spin">
+              <RefreshCw size={18} />
+            </div>
+          )}
         </div>
 
         {/* Layout */}
@@ -453,37 +475,65 @@ export default function ProductsClient({ initialProducts = [], district = null, 
             </div>
 
             <div className="space-y-1.5">
-              {Object.keys(sortedGroupedProducts)
-                .filter((category) =>
-                  category.toLowerCase().includes(categorySearch.toLowerCase())
-                )
-                .map((category) => {
-                  const isOpened = openedCategory === category;
-                  const isActive = activeCategory === category;
-                  const subcategories = sortedGroupedProducts[category] || {};
-                  const count = getCategoryProductCount(category);
+              {Object.keys(sortedGroupedProducts).length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  No active categories assigned.
+                </div>
+              ) : (
+                Object.keys(sortedGroupedProducts)
+                  .filter((category) =>
+                    category.toLowerCase().includes(categorySearch.toLowerCase())
+                  )
+                  .map((category) => {
+                    const isOpened = openedCategory === category;
+                    const isActive = activeCategory === category;
+                    const subcategories = sortedGroupedProducts[category] || {};
+                    const count = getCategoryProductCount(category);
 
-                  return (
-                    <CategoryItem
-                      key={category}
-                      category={category}
-                      isOpened={isOpened}
-                      isActive={isActive}
-                      subcategories={subcategories}
-                      categoryProductCount={count}
-                      toggleCategory={toggleCategory}
-                      toggleSubCategory={toggleSubCategory}
-                      openedSubCategories={openedSubCategories}
-                      scrollToProduct={scrollToProduct}
-                    />
-                  );
-                })}
+                    return (
+                      <CategoryItem
+                        key={category}
+                        category={category}
+                        isOpened={isOpened}
+                        isActive={isActive}
+                        subcategories={subcategories}
+                        categoryProductCount={count}
+                        toggleCategory={toggleCategory}
+                        toggleSubCategory={toggleSubCategory}
+                        openedSubCategories={openedSubCategories}
+                        scrollToProduct={scrollToProduct}
+                      />
+                    );
+                  })
+              )}
             </div>
           </aside>
 
           {/* RIGHT SIDE START */}
           <div className="space-y-16">
-            {filteredProducts.length === 0 ? (
+            {products.length === 0 ? (
+              <div className="bg-white border border-slate-200 rounded-[32px] p-10 lg:p-16 text-center shadow-lg">
+                <div className="w-24 h-24 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center text-5xl mb-6">
+                  📦
+                </div>
+
+                <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">
+                  No Products Visible
+                </h2>
+
+                <p className="mt-4 text-slate-500 max-w-xl mx-auto leading-7">
+                  Products in this catalog are currently unassigned or hidden in the SuperAdmin Master Catalog. Changes reflect automatically here in real time.
+                </p>
+
+                <button
+                  onClick={() => syncLiveCatalog(true)}
+                  className="mt-8 inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white font-semibold hover:shadow-[0_15px_35px_rgba(251,191,36,0.45)] transition cursor-pointer"
+                >
+                  <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
+                  <span>Refresh Catalog</span>
+                </button>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-[32px] p-10 lg:p-16 text-center shadow-lg">
                 <div className="w-24 h-24 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center text-5xl mb-6">
                   🔍
@@ -506,7 +556,7 @@ export default function ProductsClient({ initialProducts = [], district = null, 
                     setSearchInput("");
                     setProductSearch("");
                   }}
-                  className="mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white font-semibold hover:shadow-[0_15px_35px_rgba(251,191,36,0.45)] transition"
+                  className="mt-8 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white font-semibold hover:shadow-[0_15px_35px_rgba(251,191,36,0.45)] transition cursor-pointer"
                 >
                   View All Products
                 </button>
@@ -535,7 +585,7 @@ export default function ProductsClient({ initialProducts = [], district = null, 
                     {/* Subcategories */}
                     <div className="space-y-12">
                       {Object.entries(subcategoriesObj).map(
-                        (([subCategory, list]) => (
+                        ([subCategory, list]) => (
                           <div key={subCategory} className="space-y-6">
                             {/* Subcategory Heading */}
                             <div className="flex items-center gap-3">
@@ -552,14 +602,14 @@ export default function ProductsClient({ initialProducts = [], district = null, 
                             <div className="space-y-8">
                               {list.slice(0, 12).map((product) => (
                                 <ProductCard
-                                  key={product.uid}
+                                  key={product.uid || product.id}
                                   product={product}
                                   district={district}
                                 />
                               ))}
                             </div>
                           </div>
-                        ))
+                        )
                       )}
                     </div>
                   </section>
@@ -614,14 +664,11 @@ export default function ProductsClient({ initialProducts = [], district = null, 
         </div>
       </section>
 
-      {/* CTA */}
-      {/* <CTASection /> */}
-
       {/* Back To Top */}
       {showTopButton && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white shadow-2xl hover:shadow-[0_15px_35px_rgba(251,191,36,0.45)] hover:scale-110 transition flex items-center justify-center"
+          className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white shadow-2xl hover:shadow-[0_15px_35px_rgba(251,191,36,0.45)] hover:scale-110 transition flex items-center justify-center cursor-pointer"
         >
           <ChevronUp size={24} />
         </button>

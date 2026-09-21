@@ -6,14 +6,9 @@ import CTASection from "@/components/CTASection";
 import { fetchCategoriesServer, fetchFullCatalog } from "@/lib/data-fetcher-server";
 import { Award, CheckCircle2, HelpCircle } from "lucide-react";
 
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-  const categories = await fetchCategoriesServer();
-  return categories.map((cat) => ({
-    slug: cat.slug,
-  }));
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;

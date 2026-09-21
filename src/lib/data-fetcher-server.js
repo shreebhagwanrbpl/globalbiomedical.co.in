@@ -1,51 +1,34 @@
-import { fetchFullCatalog as fetchFullCatalogRaw, fetchDistrictsRaw, fetchCategoriesRaw } from "./data-fetcher";
-import { cache } from "react";
+import {
+  fetchFullCatalog as fetchFullCatalogRaw,
+  fetchDistrictsRaw,
+  fetchCategoriesRaw,
+  makeSlug
+} from "./data-fetcher";
 
-// Global in-memory cache for the server process
-let cachedCatalog = null;
-let cachedCatalogTimestamp = 0;
-let cachedDistricts = null;
-let cachedDistrictsTimestamp = 0;
-
-const CACHE_TTL = 3600 * 1000; // 1 hour in milliseconds
-
-async function getCachedCatalog() {
-  const now = Date.now();
-  if (cachedCatalog && (now - cachedCatalogTimestamp) < CACHE_TTL) {
-    return cachedCatalog;
-  }
-  const data = await fetchFullCatalogRaw();
-  cachedCatalog = data;
-  cachedCatalogTimestamp = now;
-  return data;
+/**
+ * Fetch the full live product catalog for server rendering without long-lived stale caching.
+ */
+export async function fetchFullCatalog() {
+  return await fetchFullCatalogRaw();
 }
 
-async function getCachedDistricts() {
-  const now = Date.now();
-  if (cachedDistricts && (now - cachedDistrictsTimestamp) < CACHE_TTL) {
-    return cachedDistricts;
-  }
-  const data = await fetchDistrictsRaw();
-  cachedDistricts = data;
-  cachedDistrictsTimestamp = now;
-  return data;
+/**
+ * Fetch all location districts for server rendering.
+ */
+export async function fetchDistrictsServer() {
+  return await fetchDistrictsRaw();
 }
 
-export const fetchFullCatalog = cache(async () => {
-  return await getCachedCatalog();
-});
-
-export const fetchDistrictsServer = cache(async () => {
-  return await getCachedDistricts();
-});
-
-export const fetchCategoriesServer = cache(async () => {
+/**
+ * Fetch all categories derived from the live Master Catalog for server rendering.
+ */
+export async function fetchCategoriesServer() {
   const catalog = await fetchFullCatalog();
   const catMap = new Map();
-  
+
   catalog.forEach((p) => {
     if (p.category) {
-      const slug = p.category.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+      const slug = makeSlug(p.category);
       if (!catMap.has(slug)) {
         catMap.set(slug, {
           name: p.category,
@@ -60,14 +43,18 @@ export const fetchCategoriesServer = cache(async () => {
   });
 
   return Array.from(catMap.values());
-});
+}
 
-export const fetchProductBySlugServer = cache(async (slug) => {
+/**
+ * Fetch a single product by slug from the live Master Catalog.
+ */
+export async function fetchProductBySlugServer(slug) {
   const catalog = await fetchFullCatalog();
-  const makeSlug = (text = "") =>
-    text.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
+  const cleanSlug = makeSlug(slug);
 
-  const found = catalog.find((p) => p.slug === slug || makeSlug(p.title) === slug);
+  const found = catalog.find(
+    (p) => p.slug === slug || makeSlug(p.slug) === cleanSlug || makeSlug(p.title) === cleanSlug
+  );
   if (found) return found;
 
   const formattedTitle = slug
@@ -89,5 +76,4 @@ export const fetchProductBySlugServer = cache(async (slug) => {
     desc: `${formattedTitle} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
     images: ["/hdc_lyte_analyzer.svg"],
   };
-});
-
+}
