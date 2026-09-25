@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -37,12 +35,11 @@ export default function Footer() {
   useEffect(() => {
     const loadContact = async () => {
       try {
-        const snap = await getDoc(
-          doc(db, "websites", "globalbiomedicalcoin", "pages", "contact")
-        );
+        const res = await fetch("/api/site-data?type=contact");
+        const json = await res.json();
 
-        if (snap.exists()) {
-          setContactInfo(snap.data().contactInfo || []);
+        if (json?.success && json?.data?.contactInfo) {
+          setContactInfo(json.data.contactInfo || []);
         }
       } catch (err) {
         console.log(err);
@@ -58,12 +55,13 @@ export default function Footer() {
     const loadDistrict = async () => {
       if (!district) return;
       try {
-        const snap = await getDoc(
-          doc(db, "websites", "globalbiomedicalcoin", "districts", district)
+        const res = await fetch(
+          `/api/site-data?type=districts&district=${encodeURIComponent(district)}`
         );
+        const json = await res.json();
 
-        if (snap.exists()) {
-          setDistrictData(snap.data());
+        if (json?.success && json?.data) {
+          setDistrictData(json.data);
         }
       } catch (err) {
         console.log(err);

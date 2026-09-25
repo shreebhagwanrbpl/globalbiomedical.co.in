@@ -18,75 +18,33 @@ import {
 import PageBanner from "@/components/PageBanner";
 import SectionTitle from "@/components/SectionTitle";
 import CTASection from "@/components/CTASection";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
-const defaultServices = [
-  {
-    title: "Equipment Supply & Setup",
-    desc: "We deliver and assemble diagnostic devices right in your lab, making sure everything runs perfectly from day one.",
-    icon: <Microscope size={32} />,
-    features: ["Expert Setup", "Accuracy Testing", "Hands-on Staff Demo"],
-  },
-  {
-    title: "Annual Maintenance (AMC & CMC)",
-    desc: "Scheduled machine checkups and part replacements that keep your lab open and active without surprise costs.",
-    icon: <Wrench size={32} />,
-    features: ["Routine Health Checks", "Genuine Spare Parts", "Priority Emergency Support"],
-  },
-  {
-    title: "Machine Calibration & Quality Care",
-    desc: "Fine-tuning your devices so every test report meets official health guidelines and exact clinical standards.",
-    icon: <ShieldCheck size={32} />,
-    features: ["Precision Testing", "Audit Compliance Papers", "Quality Reports"],
-  },
-  {
-    title: "Lab Reagents & Daily Supplies",
-    desc: "Timely delivery of fresh testing chemicals and lab supplies stored at ideal temperatures.",
-    icon: <FlaskConical size={32} />,
-    features: ["Cold-Chain Delivery", "Fresh Verified Stock", "Bulk Order Savings"],
-  },
-  {
-    title: "Smart Lab Planning Assistance",
-    desc: "Friendly guidance on picking the best equipment and designing a comfortable, fast lab workspace.",
-    icon: <Stethoscope size={32} />,
-    features: ["Workflow Optimization", "Space & Power Check", "Budget-Friendly Options"],
-  },
-  {
-    title: "Quick Repair & Technical Response",
-    desc: "Fast-acting technicians on call to fix unexpected hardware bugs or machine errors in your lab.",
-    icon: <Activity size={32} />,
-    features: ["Fast On-Call Visits", "Backup Machine Support", "Clear Technical Advice"],
-  },
+const serviceIcons = [
+  <Microscope key="1" size={32} />,
+  <Wrench key="2" size={32} />,
+  <ShieldCheck key="3" size={32} />,
+  <FlaskConical key="4" size={32} />,
+  <Stethoscope key="5" size={32} />,
+  <Activity key="6" size={32} />,
 ];
 
 export default function ServicesPage() {
-  const [services, setServices] = useState(defaultServices);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const snap = await getDoc(
-          doc(
-            db,
-            "websites",
-            "globalbiomedicalcoin",
-            "pages",
-            "services"
-          )
-        );
+        const res = await fetch("/api/site-data?type=services");
+        const json = await res.json();
 
-        if (snap.exists() && snap.data().services?.length) {
-          const loaded = snap.data().services.map((item, idx) => ({
-            ...item,
-            icon: defaultServices[idx % defaultServices.length].icon,
-            features: defaultServices[idx % defaultServices.length].features,
-          }));
-          setServices(loaded);
+        if (json?.success && Array.isArray(json?.data?.services)) {
+          setServices(json.data.services);
+        } else if (json?.success && Array.isArray(json?.data)) {
+          setServices(json.data);
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching services:", error);
       } finally {
         setLoading(false);
       }
@@ -114,47 +72,60 @@ export default function ServicesPage() {
           />
 
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 mt-16">
-            {services.map((service, index) => (
-              <div
-                key={index}
-                className="group relative rounded-[32px] bg-white p-8 border border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-2 hover:border-amber-400"
-              >
-                <div>
-                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-amber-400 border border-slate-800 shadow-md group-hover:bg-amber-500 group-hover:text-black transition-colors duration-300">
-                    {service.icon || <Settings size={32} />}
+            {loading ? (
+              [...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-[32px] bg-white p-8 border border-slate-200 shadow-lg animate-pulse h-64"
+                />
+              ))
+            ) : services.length > 0 ? (
+              services.map((service, index) => (
+                <div
+                  key={index}
+                  className="group relative rounded-[32px] bg-white p-8 border border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-2 hover:border-amber-400"
+                >
+                  <div>
+                    <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-amber-400 border border-slate-800 shadow-md group-hover:bg-amber-500 group-hover:text-black transition-colors duration-300">
+                      {serviceIcons[index % serviceIcons.length] || <Settings size={32} />}
+                    </div>
+
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-amber-600 transition-colors">
+                      {service.title || service.name}
+                    </h3>
+
+                    <p className="text-slate-600 leading-relaxed text-sm mb-6">
+                      {service.desc || service.description}
+                    </p>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-amber-600 transition-colors">
-                    {service.title}
-                  </h3>
+                  <div>
+                    {Array.isArray(service.features) && service.features.length > 0 && (
+                      <div className="space-y-2 pt-4 border-t border-slate-100 mb-6">
+                        {service.features.map((feat, fIdx) => (
+                          <div key={fIdx} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                            <CheckCircle2 size={14} className="text-amber-500 flex-shrink-0" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                  <p className="text-slate-600 leading-relaxed text-sm mb-6">
-                    {service.desc || service.description}
-                  </p>
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-amber-600 group-hover:text-amber-700 transition"
+                    >
+                      <span>Request Service</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
                 </div>
-
-                <div>
-                  {service.features && (
-                    <div className="space-y-2 pt-4 border-t border-slate-100 mb-6">
-                      {service.features.map((feat, fIdx) => (
-                        <div key={fIdx} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                          <CheckCircle2 size={14} className="text-amber-500 flex-shrink-0" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <Link
-                    href="/contact"
-                    className="inline-flex items-center gap-2 text-sm font-bold text-amber-600 group-hover:text-amber-700 transition"
-                  >
-                    <span>Request Service</span>
-                    <span>→</span>
-                  </Link>
-                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 text-slate-500 text-sm">
+                No services available at this time.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>

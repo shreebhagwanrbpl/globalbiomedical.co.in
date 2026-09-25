@@ -2,13 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  doc,
-  getDoc,
-  addDoc,
-  collection,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import {
   Mail,
@@ -80,14 +73,21 @@ export default function ContactPage() {
 
     try {
       setSubmitting(true);
-      await addDoc(
-        collection(db, "websitesQueries", "globalbiomedicalcoin", "contactQueries"),
-        {
+      const res = await fetch("/api/contact-query", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           ...form,
           district: selectedDistrict,
-          createdAt: new Date(),
-        }
-      );
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit message");
+      }
 
       toast.success("Message submitted successfully");
       setForm({
@@ -99,7 +99,7 @@ export default function ContactPage() {
       });
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong");
+      toast.error(err.message || "Something went wrong");
     } finally {
       setSubmitting(false);
     }
@@ -109,14 +109,14 @@ export default function ContactPage() {
     const loadDistrict = async () => {
       if (!urlDistrict) return;
       try {
-        const snap = await getDoc(
-          doc(db, "websites", "globalbiomedicalcoin", "districts", urlDistrict)
+        const res = await fetch(
+          `/api/site-data?type=districts&district=${encodeURIComponent(urlDistrict)}`
         );
-        if (snap.exists()) {
-          const data = snap.data();
-          setDistrictData(data);
-          if (data.district) {
-            setSelectedDistrict(data.district);
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setDistrictData(json.data);
+          if (json.data.district) {
+            setSelectedDistrict(json.data.district);
           }
         }
       } catch (err) {
@@ -129,11 +129,10 @@ export default function ContactPage() {
   useEffect(() => {
     const loadContact = async () => {
       try {
-        const snap = await getDoc(
-          doc(db, "websites", "globalbiomedicalcoin", "pages", "contact")
-        );
-        if (snap.exists()) {
-          setContactInfo(snap.data().contactInfo || []);
+        const res = await fetch("/api/site-data?type=contact");
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setContactInfo(json.data.contactInfo || []);
         }
       } catch (err) {
         console.log(err);

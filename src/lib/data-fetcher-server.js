@@ -2,7 +2,7 @@ import {
   fetchFullCatalog as fetchFullCatalogRaw,
   fetchDistrictsRaw,
   fetchCategoriesRaw,
-  makeSlug
+  makeSlug,
 } from "./data-fetcher";
 
 /**
@@ -47,33 +47,19 @@ export async function fetchCategoriesServer() {
 
 /**
  * Fetch a single product by slug from the live Master Catalog.
+ * Returns only live product data without hardcoded static specs fallbacks.
  */
 export async function fetchProductBySlugServer(slug) {
   const catalog = await fetchFullCatalog();
   const cleanSlug = makeSlug(slug);
 
   const found = catalog.find(
-    (p) => p.slug === slug || makeSlug(p.slug) === cleanSlug || makeSlug(p.title) === cleanSlug
+    (p) =>
+      p.slug === slug ||
+      makeSlug(p.slug) === cleanSlug ||
+      makeSlug(p.title) === cleanSlug
   );
   if (found) return found;
 
-  const formattedTitle = slug
-    ? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-    : "Biomedical Equipment";
-
-  return {
-    title: formattedTitle,
-    slug: slug,
-    brand: "Global Biomedical",
-    model: "HD Series",
-    category: "Diagnostic & Laboratory Equipment",
-    instrument: "Medical Analyzer",
-    automation: "Fully Automatic",
-    capacity: "Standard Capacity",
-    throughput: "High Throughput Performance",
-    usage: "Hospital & Pathology Laboratory Diagnostics",
-    availability: "In Stock - Fast Pan-India Dispatch",
-    desc: `${formattedTitle} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
-    images: ["/hdc_lyte_analyzer.svg"],
-  };
+  return null;
 }

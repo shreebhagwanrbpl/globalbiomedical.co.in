@@ -2,67 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, ShieldCheck, Download, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronRight } from "lucide-react";
 import ProductCard from "./ProductCard";
 import { fetchFullCatalog } from "@/lib/data-fetcher";
 
-const sampleFeatured = [
-  {
-    title: "HD Consortium Automatic Abbott Blood Analyzer",
-    slug: "hd-consortium-automatic-abbott-blood-analyzer-hdc-lyte-plus",
-    brand: "HD Consortium",
-    model: "HDC-LYTE PLUS",
-    category: "Hematology & Blood Analyzers",
-    description: "Fully automatic blood analyzer providing rapid, high-precision electrolyte and cell count diagnostics for hospitals and clinical laboratories.",
-    instrument: "Electrolyte Blood Analyzer",
-    automation: "Fully Automatic",
-    images: ["/hdc_lyte_analyzer.svg"],
-  },
-  {
-    title: "Fully Automatic Biochemistry Analyzer",
-    slug: "fully-automatic-biochemistry-analyzer-model-bm-300",
-    brand: "Global Biomedical",
-    model: "BM-300 High Speed",
-    category: "Biochemistry Analyzers",
-    description: "Advanced biochemistry testing system with 300 tests/hour throughput, automated reagent cooling, and audit-ready precision.",
-    instrument: "Biochemistry Analyzer",
-    automation: "Fully Automatic",
-    images: ["/biochemistry_analyzer.svg"],
-  },
-  {
-    title: "Compact 3-Part Differential Hematology Analyzer",
-    slug: "compact-3-part-differential-hematology-analyzer",
-    brand: "Global Biomedical",
-    model: "HemaCount 3000",
-    category: "Hematology & Blood Analyzers",
-    description: "Compact 60 samples/hour 3-part WBC differential hematology analyzer engineered for pathology labs and diagnostic centres.",
-    instrument: "Hematology Counter",
-    automation: "Semi-Automatic",
-    images: ["/hdc_lyte_analyzer.svg"],
-  },
-  {
-    title: "Automated Microplate ELISA Reader & Washer",
-    slug: "automated-microplate-elisa-reader-washer",
-    brand: "BioLab Pro",
-    model: "ELISA-96V",
-    category: "Diagnostic Equipment",
-    description: "High-precision 96-well microplate reader with dual wavelength optics and automated plate washing for serology and immunology tests.",
-    instrument: "ELISA Spectrophotometer",
-    automation: "Fully Automatic",
-    images: ["/biochemistry_analyzer.svg"],
-  },
-];
-
 export default function FeaturedProducts({ city }) {
-  const [products, setProducts] = useState(sampleFeatured);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         const catalog = await fetchFullCatalog();
-        if (catalog && catalog.length > 0) {
-          // Take top 4 or published items
+        if (Array.isArray(catalog)) {
           setProducts(catalog.slice(0, 4));
         }
       } catch (err) {
@@ -116,10 +68,14 @@ export default function FeaturedProducts({ city }) {
                 <div key={i} className="h-64 bg-slate-800/80 rounded-3xl animate-pulse" />
               ))}
             </div>
-          ) : (
+          ) : products.length > 0 ? (
             products.map((product) => (
               <ProductCard key={product.slug || product.uid} product={product} district={districtSlug} />
             ))
+          ) : (
+            <div className="text-center py-12 text-slate-400 text-sm">
+              No products found in catalog.
+            </div>
           )}
         </div>
       </div>

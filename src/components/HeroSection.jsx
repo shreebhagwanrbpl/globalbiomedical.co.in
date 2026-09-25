@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 import {
   ArrowRight,
@@ -24,24 +22,25 @@ export default function HeroSection({ city }) {
   const [loading, setLoading] = useState(true);
 
   const [heroData, setHeroData] = useState({
-    title: "Dependable Medical Instruments & Laboratory Tech",
-    description: "We help medical clinics, pathology labs, and diagnostic centers across India get reliable, easy-to-use testing equipment and fast technical assistance whenever they need it.",
-    button1Text: "Explore Products",
-    button2Text: "Get Quick Quote",
+    title: "",
+    description: "",
+    button1Text: "",
+    button2Text: "",
   });
 
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
-        const snap = await getDoc(
-          doc(db, "websites", "globalbiomedicalcoin", "pages", "home")
-        );
+        const res = await fetch("/api/site-data?type=home");
+        const json = await res.json();
 
-        if (snap.exists() && snap.data().title) {
-          setHeroData((prev) => ({
-            ...prev,
-            ...snap.data(),
-          }));
+        if (json?.success && json?.data) {
+          setHeroData({
+            title: json.data.title || "",
+            description: json.data.description || json.data.subtitle || "",
+            button1Text: json.data.button1Text || json.data.primaryButtonText || "",
+            button2Text: json.data.button2Text || json.data.secondaryButtonText || "",
+          });
         }
       } catch (error) {
         console.error("Error fetching hero data:", error);
@@ -93,7 +92,7 @@ export default function HeroSection({ city }) {
               </div>
             ) : (
               <>
-                <span>{heroData.title}</span>
+                {heroData.title && <span>{heroData.title}</span>}
                 {city && (
                   <>
                     <br />
@@ -107,29 +106,47 @@ export default function HeroSection({ city }) {
           </h1>
 
           {/* Subtext */}
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
-            {heroData.description}
-            {city && (
-              <>
-                {" "}Delivered directly to hospitals and diagnostic centers in <strong>{city}</strong>.
-              </>
-            )}
-          </p>
+          {loading ? (
+            <div className="animate-pulse space-y-2 max-w-2xl">
+              <div className="h-4 bg-slate-800 rounded w-full" />
+              <div className="h-4 bg-slate-800 rounded w-4/5" />
+            </div>
+          ) : (
+            heroData.description && (
+              <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+                {heroData.description}
+                {city && (
+                  <>
+                    {" "}Delivered directly to hospitals and diagnostic centers in <strong>{city}</strong>.
+                  </>
+                )}
+              </p>
+            )
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Link href={makeLink("/items")} className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black font-extrabold shadow-lg hover:shadow-[0_15px_35px_rgba(251,191,36,0.4)] transition hover:-translate-y-0.5 cursor-pointer">
-                <span>{heroData.button1Text || "Explore Products"}</span>
-                <ArrowRight size={18} />
-              </button>
-            </Link>
+            {loading ? (
+              <div className="flex gap-4">
+                <div className="h-14 w-40 bg-slate-800 rounded-2xl animate-pulse" />
+                <div className="h-14 w-40 bg-slate-800 rounded-2xl animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <Link href={makeLink("/items")} className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black font-extrabold shadow-lg hover:shadow-[0_15px_35px_rgba(251,191,36,0.4)] transition hover:-translate-y-0.5 cursor-pointer">
+                    <span>{heroData.button1Text}</span>
+                    <ArrowRight size={18} />
+                  </button>
+                </Link>
 
-            <Link href={makeLink("/contact")} className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-slate-700 bg-slate-900 text-white font-bold hover:bg-slate-800 hover:border-slate-600 transition cursor-pointer">
-                <span>{heroData.button2Text || "Contact Us"}</span>
-              </button>
-            </Link>
+                <Link href={makeLink("/contact")} className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-slate-700 bg-slate-900 text-white font-bold hover:bg-slate-800 hover:border-slate-600 transition cursor-pointer">
+                    <span>{heroData.button2Text}</span>
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Highlight Bullets */}

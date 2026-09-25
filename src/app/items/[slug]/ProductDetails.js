@@ -15,14 +15,6 @@ import {
     FaLink,
 } from "react-icons/fa";
 
-import {
-    doc,
-    getDoc,
-    getDocs,
-    addDoc,
-    collection,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { fetchFullCatalog } from "@/lib/data-fetcher";
 
 const makeSlug = (text = "") =>
@@ -107,23 +99,13 @@ export default function ProductDetails({ slug }) {
                     } else {
                         const formattedTitle = slug
                             ? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-                            : "Biomedical Equipment";
+                            : "";
 
                         const specificImg = getSpecificImg(formattedTitle, "");
 
                         const fallbackProd = {
                             title: formattedTitle,
                             slug: slug,
-                            brand: "Global Biomedical",
-                            model: "HD Series",
-                            category: "Diagnostic & Laboratory Equipment",
-                            instrument: "Medical Analyzer",
-                            automation: "Fully Automatic",
-                            capacity: "Standard Capacity",
-                            throughput: "High Throughput Performance",
-                            usage: "Hospital & Pathology Laboratory Diagnostics",
-                            availability: "In Stock - Fast Pan-India Dispatch",
-                            desc: `${formattedTitle} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
                             images: [specificImg],
                         };
                         setProduct(fallbackProd);
@@ -136,25 +118,15 @@ export default function ProductDetails({ slug }) {
                 if (isMounted) {
                     const formattedTitle = slug
                         ? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-                        : "Biomedical Equipment";
+                        : "";
 
                     const fallbackProd = {
                         title: formattedTitle,
                         slug: slug,
-                        brand: "Global Biomedical",
-                        model: "HD Series",
-                        category: "Diagnostic & Laboratory Equipment",
-                        instrument: "Medical Analyzer",
-                        automation: "Fully Automatic",
-                        capacity: "Standard Capacity",
-                        throughput: "High Throughput Performance",
-                        usage: "Hospital & Pathology Laboratory Diagnostics",
-                        availability: "In Stock - Fast Pan-India Dispatch",
-                        desc: `${formattedTitle} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
-                        images: ["/placeholder.svg"],
+                        images: ["/hdc_lyte_analyzer.svg"],
                     };
                     setProduct(fallbackProd);
-                    setSelectedImage("/placeholder.svg");
+                    setSelectedImage("/hdc_lyte_analyzer.svg");
                     setSelectedMedia("image");
                 }
             }
@@ -194,22 +166,24 @@ export default function ProductDetails({ slug }) {
         try {
             setSubmitting(true);
 
-            await addDoc(
-                collection(
-                    db,
-                    "websitesQueries",
-                    "globalbiomedicalcoin",
-                    "productQueries"
-                ),
-                {
+            const res = await fetch("/api/product-query", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
                     ...form,
-                    productName: product.title,
-                    productSlug: product.slug,
-                    brand: product.brand || "",
-                    model: product.model || "",
-                    createdAt: new Date(),
-                }
-            );
+                    productName: product?.title || "",
+                    productSlug: product?.slug || slug || "",
+                    brand: product?.brand || "",
+                    model: product?.model || "",
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || "Failed to submit enquiry");
+            }
 
             toast.success(
                 "Your enquiry has been submitted successfully."
@@ -223,7 +197,7 @@ export default function ProductDetails({ slug }) {
         } catch (error) {
             console.error(error);
             toast.error(
-                "Something went wrong"
+                error.message || "Something went wrong"
             );
         } finally {
             setSubmitting(false);
@@ -1009,22 +983,14 @@ ${product?.desc}
                         </div>
 
                         <div className="mt-6 md:mt-8 bg-white p-5 sm:p-6 md:p-8 rounded-[24px] md:rounded-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] space-y-4">
-
-                            <p><b>Brand:</b> {product.brand || "N/A"}</p>
-
-                            <p><b>Model:</b> {product.model || "N/A"}</p>
-
-                            <p><b>Instrument:</b> {product.instrument || "N/A"}</p>
-
-                            <p><b>Capacity:</b> {product.capacity || "N/A"}</p>
-
-                            <p><b>Throughput:</b> {product.throughput || "N/A"}</p>
-
-                            <p><b>Usage:</b> {product.usage || "N/A"}</p>
-
-                            <p><b>Automation:</b> {product.automation || "N/A"}</p>
-
-                            <p><b>Availability:</b> {product.availability || "N/A"}</p>
+                            {product.brand && <p><b>Brand:</b> {product.brand}</p>}
+                            {product.model && <p><b>Model:</b> {product.model}</p>}
+                            {product.instrument && <p><b>Instrument:</b> {product.instrument}</p>}
+                            {product.capacity && <p><b>Capacity:</b> {product.capacity}</p>}
+                            {product.throughput && <p><b>Throughput:</b> {product.throughput}</p>}
+                            {product.usage && <p><b>Usage:</b> {product.usage}</p>}
+                            {product.automation && <p><b>Automation:</b> {product.automation}</p>}
+                            {product.availability && <p><b>Availability:</b> {product.availability}</p>}
 
                             <div className="pt-4 border-t border-slate-100">
                                 <button

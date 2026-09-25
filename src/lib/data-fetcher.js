@@ -1,47 +1,14 @@
-import { db } from "./firebase";
-import { doc, getDoc, getDocs, collection } from "firebase/firestore";
 import { SITE_CONFIG } from "./constants";
+import {
+  ADMIN_API_BASE_URL,
+  normalizeSiteId,
+  getCompanyAndWebsite,
+  makeSlug,
+  fetchCatalogFromAdmin,
+  fetchSiteDataFromAdmin,
+} from "./admin-api";
 
-/**
- * Normalizes a website identifier or domain by stripping dots, hyphens, and whitespace.
- * e.g., "globalbiomedical.co.in" -> "globalbiomedicalcoin"
- *       "globalbiomedicals.net"  -> "globalbiomedicalsnet"
- *       "humanbiomedical.com"    -> "humanbiomedicalcom"
- */
-export function normalizeSiteId(siteIdOrDomain = "") {
-  return String(siteIdOrDomain)
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]/g, "");
-}
-
-/**
- * Detects the Company ID and normalized Website ID for the current repository.
- */
-export function getCompanyAndWebsite() {
-  const domain = SITE_CONFIG?.domain || "globalbiomedical.co.in";
-  const siteId = normalizeSiteId(domain);
-
-  let companyId = "global";
-  if (siteId.includes("human")) {
-    companyId = "human";
-  } else if (siteId.includes("global")) {
-    companyId = "global";
-  } else if (siteId.includes("rajbiosis") || siteId.includes("indian") || siteId.includes("humari")) {
-    companyId = "rajbiosis";
-  }
-
-  return { companyId, siteId, domain };
-}
-
-export const makeSlug = (text = "") =>
-  String(text)
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/--+/g, "-")
-    .replace(/^-+|-+$/g, "");
+export { normalizeSiteId, getCompanyAndWebsite, makeSlug };
 
 /**
  * Bulletproof Visibility & Instant Hide Logic:
@@ -52,7 +19,11 @@ export const makeSlug = (text = "") =>
  */
 export function isItemVisibleOnWebsite(item, currentWebsiteClean = null) {
   if (!item) return false;
-  if (item.isPublished === false || item.status === "inactive" || item.status === "disabled") {
+  if (
+    item.isPublished === false ||
+    item.status === "inactive" ||
+    item.status === "disabled"
+  ) {
     return false;
   }
 
@@ -82,233 +53,117 @@ export function isItemVisibleOnWebsite(item, currentWebsiteClean = null) {
 }
 
 /**
- * Fetch a single document directly from Firestore (no stale client lock).
+ * Fetch a single document / configuration cached from SQLite Admin API.
  */
 export async function fetchDocCached(path) {
   try {
-    const parts = path.split("/").filter(Boolean);
-    const docRef = doc(db, ...parts);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      return snap.data();
+    const { siteId, companyId } = getCompanyAndWebsite();
+    const cleanPath = String(path || "").toLowerCase();
+
+    let type = "all";
+    let district = "";
+
+    if (cleanPath.includes("pages/home")) {
+      type = "home";
+    } else if (cleanPath.includes("pages/contact")) {
+      type = "contact";
+    } else if (cleanPath.includes("pages/services")) {
+      type = "services";
+    } else if (cleanPath.includes("districts/")) {
+      type = "districts";
+      const parts = cleanPath.split("districts/");
+      district = parts[1] || "";
+    } else if (cleanPath.includes("districts")) {
+      type = "districts";
     }
-    return null;
+
+    const data = await fetchSiteDataFromAdmin({
+      websiteId: siteId,
+      companyId,
+      type,
+      district,
+    });
+
+    return data;
   } catch (err) {
-    console.error(`Error fetching doc at ${path}:`, err);
+    console.error(`Error fetching cached doc at ${path}:`, err);
     return null;
   }
 }
 
 /**
- * Fetch the full live catalog from the SuperAdmin Master Catalog path:
- * companies/{companyId}/categories/{categoryId}/subcategories/{subcategoryId}
+ * Fetch the full live catalog from SQLite Admin API backend.
  *
- * Enforces strict 3-tier cascading visibility:
- * 1. Category Visibility: If Category is hidden, skip all its subcategories & products immediately.
- * 2. Subcategory Visibility: If Subcategory is hidden, skip all its products immediately.
- * 3. Product Visibility: If Product is hidden or not assigned to this site, skip it.
+ * Enforces strict cascading visibility and uniform data formatting.
  */
 export async function fetchFullCatalog() {
   const startTime = performance.now();
   const { companyId, siteId } = getCompanyAndWebsite();
-  const allProducts = [];
 
   try {
-    // 1. Read Master Categories for this Company
-    const catCollRef = collection(db, "companies", companyId, "categories");
-    const catSnap = await getDocs(catCollRef);
+    const rawCatalog = await fetchCatalogFromAdmin({
+      websiteId: siteId,
+      companyId,
+    });
 
-    if (!catSnap.empty) {
-      // Process all master categories in parallel
-      await Promise.all(
-        catSnap.docs.map(async (categoryDoc) => {
-          const catData = categoryDoc.data();
-          const catId = categoryDoc.id;
-          const categoryName = catData.name || catData.category || catId;
+    const allProducts = [];
 
-          // Tier 1: Category-level visibility check
-          if (!isItemVisibleOnWebsite(catData, siteId)) {
-            return; // Category is hidden -> All nested contents are hidden!
-          }
-
-          try {
-            // Read Master Subcategories under this Category
-            const subCollRef = collection(
-              db,
-              "companies",
-              companyId,
-              "categories",
-              catId,
-              "subcategories"
-            );
-            const subSnap = await getDocs(subCollRef);
-
-            subSnap.docs.forEach((subDoc) => {
-              const subData = subDoc.data();
-              const subId = subDoc.id;
-              const subCategoryName = subData.name || subData.subCategory || subId;
-
-              // Tier 2: Subcategory-level visibility check
-              if (!isItemVisibleOnWebsite(subData, siteId)) {
-                return; // Subcategory is hidden -> All its products are hidden!
-              }
-
-              // Tier 3: Product-level visibility check
-              const subProducts = Array.isArray(subData.products) ? subData.products : [];
-              subProducts.forEach((item, index) => {
-                if (!isItemVisibleOnWebsite(item, siteId)) {
-                  return; // Product is hidden
-                }
-
-                const title = item.title || item.name || "Biomedical Equipment";
-                const prodSlug = item.slug || makeSlug(title);
-                const rawImgs = Array.isArray(item.images)
-                  ? item.images
-                  : item.image
-                  ? [item.image]
-                  : [];
-
-                allProducts.push({
-                  ...item,
-                  id: item.id || `${catId}-${subId}-${index}`,
-                  uid: item.id || `${catId}-${subId}-${index}`,
-                  title,
-                  name: title,
-                  slug: prodSlug,
-                  category: categoryName,
-                  subCategory: subCategoryName,
-                  categoryId: catId,
-                  subcategoryId: subId,
-                  images: rawImgs,
-                  image: rawImgs[0] || "",
-                });
-              });
-            });
-          } catch (subErr) {
-            console.error(`Error fetching subcategories for category ${catId}:`, subErr);
-          }
-        })
-      );
-    }
-
-    // 2. Read Standalone Normal Products under companies/{companyId}/products (if any)
-    try {
-      const prodsCollRef = collection(db, "companies", companyId, "products");
-      const prodsSnap = await getDocs(prodsCollRef);
-
-      if (!prodsSnap.empty) {
-        prodsSnap.docs.forEach((docSnap) => {
-          const item = docSnap.data();
-          if (item.type === "category" || item.categoryId || item.subcategoryId) {
-            return; // Skip category products already handled above
-          }
-
-          if (isItemVisibleOnWebsite(item, siteId)) {
-            const title = item.title || item.name || "Biomedical Equipment";
-            const prodSlug = item.slug || makeSlug(title);
-            const rawImgs = Array.isArray(item.images)
-              ? item.images
-              : item.image
-              ? [item.image]
-              : [];
-
-            allProducts.push({
-              ...item,
-              id: docSnap.id,
-              uid: docSnap.id,
-              title,
-              name: title,
-              slug: prodSlug,
-              category: item.category || "General Equipment",
-              subCategory: item.subCategory || item.category || "General",
-              images: rawImgs,
-              image: rawImgs[0] || "",
-            });
-          }
-        });
-      }
-    } catch (normErr) {
-      console.warn("Error fetching standalone products:", normErr);
-    }
-
-    // 3. Fallback to Legacy Website Path if Master Catalog is empty
-    if (allProducts.length === 0) {
-      try {
-        const legacyCatSnap = await getDocs(
-          collection(db, "websites", siteId, "pages", "categoryproducts", "categories")
-        );
-
-        if (!legacyCatSnap.empty) {
-          await Promise.all(
-            legacyCatSnap.docs.map(async (categoryDoc) => {
-              const data = categoryDoc.data();
-              const categoryName = data.category || data.name || categoryDoc.id;
-
-              if (!isItemVisibleOnWebsite(data, siteId)) return;
-
-              try {
-                const subSnap = await getDocs(
-                  collection(
-                    db,
-                    "websites",
-                    siteId,
-                    "pages",
-                    "categoryproducts",
-                    "categories",
-                    categoryDoc.id,
-                    "subcategories"
-                  )
-                );
-
-                subSnap.forEach((subDoc) => {
-                  const subData = subDoc.data();
-                  const subCategoryName = subData.subCategory || subData.name || subDoc.id;
-
-                  if (!isItemVisibleOnWebsite(subData, siteId)) return;
-
-                  const categoryProducts = (subData.products || [])
-                    .filter((p) => isItemVisibleOnWebsite(p, siteId))
-                    .map((item, index) => ({
-                      ...item,
-                      uid: `${categoryDoc.id}-${subDoc.id}-${index}`,
-                      category: categoryName,
-                      subCategory: subCategoryName,
-                      slug: item.slug || makeSlug(item.title),
-                    }));
-
-                  allProducts.push(...categoryProducts);
-                });
-              } catch (e) {}
-
-              // Direct products fallback
-              if (data.products?.length) {
-                const directProducts = data.products
-                  .filter((p) => isItemVisibleOnWebsite(p, siteId))
-                  .map((item, index) => ({
-                    ...item,
-                    uid: `${categoryDoc.id}-direct-${index}`,
-                    category: categoryName,
-                    subCategory: item.subCategory || categoryName,
-                    slug: item.slug || makeSlug(item.title),
-                  }));
-                allProducts.push(...directProducts);
-              }
-            })
-          );
+    if (Array.isArray(rawCatalog)) {
+      rawCatalog.forEach((item, index) => {
+        if (!isItemVisibleOnWebsite(item, siteId)) {
+          return;
         }
-      } catch (legacyErr) {
-        console.warn("Legacy fallback fetch note:", legacyErr);
-      }
+
+        const title = item.title || item.name || "Biomedical Equipment";
+        const prodSlug = item.slug || makeSlug(title);
+        const rawImgs = Array.isArray(item.images)
+          ? item.images
+          : item.image
+          ? [item.image]
+          : item.imageUrl
+          ? [item.imageUrl]
+          : item.imgUrl
+          ? [item.imgUrl]
+          : [];
+
+        allProducts.push({
+          ...item,
+          id: item.id || item.uid || `${prodSlug}-${index}`,
+          uid: item.uid || item.id || `${prodSlug}-${index}`,
+          title,
+          name: title,
+          slug: prodSlug,
+          category: item.category || "Diagnostic & Laboratory Equipment",
+          subCategory: item.subCategory || item.category || "General",
+          categoryId: item.categoryId || makeSlug(item.category || "diagnostic"),
+          subcategoryId:
+            item.subcategoryId || makeSlug(item.subCategory || "general"),
+          images: rawImgs.length > 0 ? rawImgs : ["/hdc_lyte_analyzer.svg"],
+          image: rawImgs[0] || "/hdc_lyte_analyzer.svg",
+          brand: item.brand || "Global Biomedical",
+          model: item.model || "HD Series",
+          instrument: item.instrument || "Medical Analyzer",
+          automation: item.automation || "Fully Automatic",
+          capacity: item.capacity || "Standard Capacity",
+          throughput: item.throughput || "High Throughput Performance",
+          usage: item.usage || "Hospital & Pathology Laboratory Diagnostics",
+          availability: item.availability || "In Stock - Fast Pan-India Dispatch",
+          desc:
+            item.desc ||
+            item.description ||
+            `${title} is a high-performance diagnostic analyzer engineered for clinical accuracy, maximum operational reliability, and workflow efficiency in medical laboratories and hospital wards.`,
+        });
+      });
     }
 
     const duration = performance.now() - startTime;
     console.log(
-      `[data-fetcher] Master Catalog live fetch completed: ${allProducts.length} items visible for ${siteId} (${companyId}) in ${duration.toFixed(2)}ms`
+      `[data-fetcher] SQLite Admin API catalog fetch completed: ${allProducts.length} items visible for ${siteId} (${companyId}) in ${duration.toFixed(2)}ms`
     );
 
     return allProducts;
   } catch (err) {
-    console.error("Error fetching Master Catalog full catalog:", err);
+    console.error("Error fetching SQLite Admin catalog:", err);
     return [];
   }
 }
@@ -366,16 +221,33 @@ export async function fetchDistrictData(district) {
 }
 
 export async function fetchDistrictsRaw() {
-  const { siteId } = getCompanyAndWebsite();
+  const { siteId, companyId } = getCompanyAndWebsite();
   try {
-    const snap = await getDocs(collection(db, "websites", siteId, "districts"));
-    return snap.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data(),
-      slug: docSnap.data().slug || docSnap.id,
-    }));
+    const data = await fetchSiteDataFromAdmin({
+      websiteId: siteId,
+      companyId,
+      type: "districts",
+    });
+
+    if (Array.isArray(data)) {
+      return data.map((d, idx) => ({
+        id: d.id || d.slug || `dist-${idx}`,
+        ...d,
+        slug: d.slug || d.id || makeSlug(d.district || d.name || `dist-${idx}`),
+      }));
+    }
+
+    if (data?.districts && Array.isArray(data.districts)) {
+      return data.districts.map((d, idx) => ({
+        id: d.id || d.slug || `dist-${idx}`,
+        ...d,
+        slug: d.slug || d.id || makeSlug(d.district || d.name || `dist-${idx}`),
+      }));
+    }
+
+    return [];
   } catch (err) {
-    console.error("Error fetching districts raw:", err);
+    console.error("Error fetching districts raw from SQLite Admin API:", err);
     return [];
   }
 }

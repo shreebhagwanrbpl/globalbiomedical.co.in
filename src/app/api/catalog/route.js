@@ -1,30 +1,39 @@
 import { NextResponse } from "next/server";
-import { fetchFullCatalog, getCompanyAndWebsite } from "@/lib/data-fetcher";
+import {
+  ADMIN_API_BASE_URL,
+  getCompanyAndWebsite,
+  fetchCatalogFromAdmin,
+} from "@/lib/admin-api";
+import { fetchFullCatalog } from "@/lib/data-fetcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const { companyId, siteId, domain } = getCompanyAndWebsite();
-    const products = await fetchFullCatalog();
+    const { companyId: defaultCompanyId, siteId: defaultSiteId, domain } =
+      getCompanyAndWebsite();
+
+    let products = await fetchFullCatalog();
 
     return NextResponse.json(
       {
         success: true,
-        companyId,
-        siteId,
+        companyId: defaultCompanyId,
+        siteId: defaultSiteId,
         domain,
         count: products.length,
         products,
+        adminApiUrl: ADMIN_API_BASE_URL,
         timestamp: Date.now(),
       },
       {
         headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         },
       }
     );
@@ -36,6 +45,7 @@ export async function GET() {
         error: error.message || "Failed to fetch catalog",
         products: [],
         count: 0,
+        adminApiUrl: ADMIN_API_BASE_URL,
         timestamp: Date.now(),
       },
       {
