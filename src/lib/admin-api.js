@@ -1,41 +1,33 @@
 import { SITE_CONFIG } from "./constants";
 
-export const ADMIN_API_BASE_URL =
+const DEFAULT_ADMIN_API_URL = "https://admin.rajbiosis.app";
+
+export const ADMIN_API_BASE_URL = (
   process.env.ADMIN_API_BASE_URL ||
   process.env.ADMIN_API_URL ||
-  process.env.SQLITE_ADMIN_API_URL ||
-  "https://admin.rajbiosis.app";
+  DEFAULT_ADMIN_API_URL
+).replace(/\/$/, "");
 
-/**
- * Normalizes a website identifier or domain by stripping dots, hyphens, and whitespace.
- * e.g., "globalbiomedical.co.in" -> "globalbiomedicalcoin"
- */
+/** Normalize a domain or website identifier to the Admin Panel's website ID. */
 export function normalizeSiteId(siteIdOrDomain = "") {
-  return String(siteIdOrDomain)
+  return String(siteIdOrDomain || "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]/g, "");
 }
 
-/**
- * Detects the Company ID and normalized Website ID for the current repository.
- */
 export function getCompanyAndWebsite() {
   const domain = SITE_CONFIG?.domain || "globalbiomedical.co.in";
   const siteId = normalizeSiteId(domain);
-
   let companyId = "global";
-  if (siteId.includes("human")) {
-    companyId = "human";
-  } else if (siteId.includes("global")) {
-    companyId = "global";
-  } else if (
+
+  if (siteId.includes("human")) companyId = "human";
+  else if (siteId.includes("global")) companyId = "global";
+  else if (
     siteId.includes("rajbiosis") ||
     siteId.includes("indian") ||
     siteId.includes("humari")
-  ) {
-    companyId = "rajbiosis";
-  }
+  ) companyId = "rajbiosis";
 
   return { companyId, siteId, domain };
 }
@@ -49,221 +41,171 @@ export const makeSlug = (text = "") =>
     .replace(/--+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-/**
- * Fetch catalog products from SQLite Admin API backend.
- * Automatically uses internal Next.js /api/catalog proxy in client browser
- * to prevent CORS/browser network issues.
- */
-export async function fetchCatalogFromAdmin({ websiteId, companyId } = {}) {
-  const { siteId: defaultSiteId, companyId: defaultCompanyId } =
-    getCompanyAndWebsite();
-  const targetSiteId = websiteId || defaultSiteId;
-  const targetCompanyId = companyId || defaultCompanyId;
+async function parseJsonResponse(response, context) {
+  const json = await response.json().catch(() => null);
+  if (!response.ok || json?.success === false || json?.ok === false) {
+    throw new Error(
+      json?.error || `${context} failed with status ${response.status}`
+    );
+  }
+  return json;
+}
 
-  // Browser (Client-side): Use local API route to avoid CORS errors
+/** Fetch the website's published catalog from the Admin Panel MongoDB-backed API. */
+export async function fetchCatalogFromAdmin({ websiteId, companyId } = {}) {
+  const defaults = getCompanyAndWebsite();
+  const targetSiteId = websiteId || defaults.siteId;
+  const targetCompanyId = companyId || defaults.companyId;
+
   if (typeof window !== "undefined") {
     try {
-      const res = await fetch("/api/catalog", {
-        cache: "no-store",
-        headers: { Accept: "application/json" },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.success && Array.isArray(json?.products)) {
-          return json.products;
-        }
-        if (Array.isArray(json?.products)) {
-          return json.products;
-        }
-        if (Array.isArray(json)) {
-          return json;
-        }
-      }
-    } catch (clientErr) {
-      console.warn("[admin-api] Browser fetch /api/catalog note:", clientErr);
-    }
-    return [];
-  }
-
-  // Server-side: Fetch directly from SQLite Admin API backend
-  const url = `${ADMIN_API_BASE_URL}/api/catalog?websiteId=${encodeURIComponent(
-    targetSiteId
-  )}&companyId=${encodeURIComponent(targetCompanyId)}`;
-
-  try {
-    const res = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      console.warn(
-        `[admin-api] Catalog fetch returned status ${res.status} from ${url}`
+      const response = await fetch(
+        `/api/catalog?websiteId=${encodeURIComponent(targetSiteId)}&companyId=${encodeURIComponent(targetCompanyId)}`,
+        { cache: "no-store", headers: { Accept: "application/json" } }
       );
+      const json = await parseJsonResponse(response, "Catalog request");
+      if (Array.isArray(json?.products)) return json.products;
+      if (Array.isArray(json?.data)) return json.data;
+      if (Array.isArray(json)) return json;
+      return [];
+    } catch (error) {
+      console.error("[admin-api] Catalog request failed:", error.message);
       return [];
     }
+  }
 
-    const data = await res.json();
-    if (data?.success && Array.isArray(data?.products)) {
-      return data.products;
-    }
-    if (data?.success && Array.isArray(data?.data)) {
-      return data.data;
-    }
-    if (Array.isArray(data)) {
-      return data;
-    }
+  const url = new URL(`${ADMIN_API_BASE_URL}/api/catalog`);
+  url.searchParams.set("websiteId", targetSiteId);
+  url.searchParams.set("companyId", targetCompanyId);
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    const json = await parseJsonResponse(response, "Admin catalog request");
+    if (Array.isArray(json?.products)) return json.products;
+    if (Array.isArray(json?.data)) return json.data;
+    if (Array.isArray(json)) return json;
     return [];
   } catch (error) {
-    console.error(`[admin-api] Error fetching catalog from ${url}:`, error.message);
+    console.error(`[admin-api] Catalog request failed (${url}):`, error.message);
     return [];
   }
 }
 
-/**
- * Fetch site page / config data from SQLite Admin API backend.
- * Automatically uses internal Next.js /api/site-data proxy in client browser.
- */
+/** Fetch page/district data from the Admin Panel API; the Admin API reads MongoDB. */
 export async function fetchSiteDataFromAdmin({
   websiteId,
   companyId,
-  type = "all",
+  type = "home",
   district = "",
 } = {}) {
-  const { siteId: defaultSiteId, companyId: defaultCompanyId } =
-    getCompanyAndWebsite();
-  const targetSiteId = websiteId || defaultSiteId;
-  const targetCompanyId = companyId || defaultCompanyId;
+  const defaults = getCompanyAndWebsite();
+  const targetSiteId = websiteId || defaults.siteId;
+  const targetCompanyId = companyId || defaults.companyId;
 
-  // Browser (Client-side): Use local API route to avoid CORS errors
   if (typeof window !== "undefined") {
+    const params = new URLSearchParams({
+      type,
+      websiteId: targetSiteId,
+      companyId: targetCompanyId,
+    });
+    if (district) params.set("district", district);
+
     try {
-      let proxyUrl = `/api/site-data?type=${encodeURIComponent(type)}`;
-      if (district) {
-        proxyUrl += `&district=${encodeURIComponent(district)}`;
-      }
-      const res = await fetch(proxyUrl, {
+      const response = await fetch(`/api/site-data?${params.toString()}`, {
         cache: "no-store",
         headers: { Accept: "application/json" },
       });
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.success) {
-          return json.data !== undefined ? json.data : json;
-        }
-      }
-    } catch (clientErr) {
-      console.warn("[admin-api] Browser fetch /api/site-data note:", clientErr);
-    }
-    return null;
-  }
-
-  // Server-side: Fetch directly from SQLite Admin API backend
-  let url = `${ADMIN_API_BASE_URL}/api/site-data?websiteId=${encodeURIComponent(
-    targetSiteId
-  )}&companyId=${encodeURIComponent(targetCompanyId)}&type=${encodeURIComponent(
-    type
-  )}`;
-
-  if (district) {
-    url += `&district=${encodeURIComponent(district)}`;
-  }
-
-  try {
-    const res = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (!res.ok) {
+      const json = await parseJsonResponse(response, "Site data request");
+      return json?.data ?? json?.pages ?? null;
+    } catch (error) {
+      console.error("[admin-api] Site data request failed:", error.message);
       return null;
     }
+  }
 
-    const json = await res.json();
-    if (json?.success) {
-      return json.data !== undefined ? json.data : json;
-    }
-    return null;
+  const url = new URL(`${ADMIN_API_BASE_URL}/api/site-data`);
+  url.searchParams.set("websiteId", targetSiteId);
+  url.searchParams.set("companyId", targetCompanyId);
+  url.searchParams.set("type", type);
+  if (district) url.searchParams.set("district", district);
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    const json = await parseJsonResponse(response, "Admin site data request");
+    return json?.data ?? json?.pages ?? null;
   } catch (error) {
-    console.error(`[admin-api] Error fetching site-data from ${url}:`, error.message);
+    console.error(`[admin-api] Site data request failed (${url}):`, error.message);
     return null;
   }
 }
 
-/**
- * Submit contact query to SQLite Admin API backend.
- */
+/** Send public website enquiries to the Admin Panel's MongoDB-backed API. */
+export async function forwardQueryToAdmin({ type, websiteId, companyId, domain, data }) {
+  const defaults = getCompanyAndWebsite();
+  const targetWebsiteId = websiteId || defaults.siteId;
+  const targetCompanyId = companyId || defaults.companyId;
+  const payload = {
+    type,
+    websiteId: targetWebsiteId,
+    companyId: targetCompanyId,
+    domain: domain || defaults.domain,
+    data: {
+      ...(data || {}),
+      websiteId: targetWebsiteId,
+      companyId: targetCompanyId,
+      domain: domain || defaults.domain,
+      type,
+      createdAt: data?.createdAt || new Date().toISOString(),
+    },
+  };
+
+  const response = await fetch(`${ADMIN_API_BASE_URL}/api/public-query`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  const json = await parseJsonResponse(response, "Admin enquiry submission");
+  return { success: true, ...json };
+}
+
 export async function sendContactQuery(payload = {}) {
-  const { siteId, companyId } = getCompanyAndWebsite();
-  const fullPayload = {
-    websiteId: payload.websiteId || siteId,
-    companyId: payload.companyId || companyId,
-    type: "contact",
-    ...payload,
-    createdAt: payload.createdAt || new Date().toISOString(),
-  };
-
-  const url = `${ADMIN_API_BASE_URL}/api/contact-query`;
-
+  const defaults = getCompanyAndWebsite();
   try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(fullPayload),
+    return await forwardQueryToAdmin({
+      type: "contact",
+      websiteId: payload.websiteId || defaults.siteId,
+      companyId: payload.companyId || defaults.companyId,
+      domain: payload.domain || defaults.domain,
+      data: payload,
     });
-
-    if (!res.ok) {
-      console.warn(
-        `[admin-api] Contact query forward status ${res.status} from ${url}`
-      );
-    }
-    return { success: true };
   } catch (error) {
-    console.error(`[admin-api] Error posting contact query to ${url}:`, error.message);
-    return { success: true };
+    console.error("[admin-api] Contact enquiry submission failed:", error.message);
+    return { success: false, error: error.message };
   }
 }
 
-/**
- * Submit product query to SQLite Admin API backend.
- */
 export async function sendProductQuery(payload = {}) {
-  const { siteId, companyId } = getCompanyAndWebsite();
-  const fullPayload = {
-    websiteId: payload.websiteId || siteId,
-    companyId: payload.companyId || companyId,
-    type: "product",
-    ...payload,
-    createdAt: payload.createdAt || new Date().toISOString(),
-  };
-
-  const url = `${ADMIN_API_BASE_URL}/api/product-query`;
-
+  const defaults = getCompanyAndWebsite();
   try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(fullPayload),
+    return await forwardQueryToAdmin({
+      type: "product",
+      websiteId: payload.websiteId || defaults.siteId,
+      companyId: payload.companyId || defaults.companyId,
+      domain: payload.domain || defaults.domain,
+      data: payload,
     });
-
-    if (!res.ok) {
-      console.warn(
-        `[admin-api] Product query forward status ${res.status} from ${url}`
-      );
-    }
-    return { success: true };
   } catch (error) {
-    console.error(`[admin-api] Error posting product query to ${url}:`, error.message);
-    return { success: true };
+    console.error("[admin-api] Product enquiry submission failed:", error.message);
+    return { success: false, error: error.message };
   }
 }

@@ -1,6 +1,4 @@
-import { SITE_CONFIG } from "./constants";
 import {
-  ADMIN_API_BASE_URL,
   normalizeSiteId,
   getCompanyAndWebsite,
   makeSlug,
@@ -53,7 +51,7 @@ export function isItemVisibleOnWebsite(item, currentWebsiteClean = null) {
 }
 
 /**
- * Fetch a single document / configuration cached from SQLite Admin API.
+ * Fetch a page or district document from the Admin Panel API backed by MongoDB.
  */
 export async function fetchDocCached(path) {
   try {
@@ -70,7 +68,7 @@ export async function fetchDocCached(path) {
     } else if (cleanPath.includes("pages/services")) {
       type = "services";
     } else if (cleanPath.includes("districts/")) {
-      type = "districts";
+      type = "district";
       const parts = cleanPath.split("districts/");
       district = parts[1] || "";
     } else if (cleanPath.includes("districts")) {
@@ -92,7 +90,7 @@ export async function fetchDocCached(path) {
 }
 
 /**
- * Fetch the full live catalog from SQLite Admin API backend.
+ * Fetch the full live catalog from the Admin Panel MongoDB API.
  *
  * Enforces strict cascading visibility and uniform data formatting.
  */
@@ -158,12 +156,12 @@ export async function fetchFullCatalog() {
 
     const duration = performance.now() - startTime;
     console.log(
-      `[data-fetcher] SQLite Admin API catalog fetch completed: ${allProducts.length} items visible for ${siteId} (${companyId}) in ${duration.toFixed(2)}ms`
+      `[data-fetcher] Admin MongoDB API catalog fetch completed: ${allProducts.length} items visible for ${siteId} (${companyId}) in ${duration.toFixed(2)}ms`
     );
 
     return allProducts;
   } catch (err) {
-    console.error("Error fetching SQLite Admin catalog:", err);
+    console.error("Error fetching Admin MongoDB catalog:", err);
     return [];
   }
 }
@@ -247,7 +245,7 @@ export async function fetchDistrictsRaw() {
 
     return [];
   } catch (err) {
-    console.error("Error fetching districts raw from SQLite Admin API:", err);
+    console.error("Error fetching districts from Admin MongoDB API:", err);
     return [];
   }
 }

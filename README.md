@@ -34,3 +34,11 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Admin Panel / MongoDB data connection
+
+This website reads product catalog and page content through the SuperAdminRBPL Admin API and submits contact/product enquiries through `/api/public-query`. The website does not connect directly to MongoDB and does not require Firebase client/admin SDKs or a local SQLite database.
+
+Configure `ADMIN_API_BASE_URL` in the website hosting environment to the deployed Admin Panel origin (for example, `https://admin.rajbiosis.app`). The Admin Panel must have its MongoDB connection configured and must recognize the normalized website ID `globalbiomedicalcoin` under the `global` company.
+
+The Firebase App Hosting deployment descriptors are retained so an existing App Hosting deployment workflow is not accidentally broken; they are not used for application data storage.

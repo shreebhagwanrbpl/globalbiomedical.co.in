@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_API_BASE_URL,
   getCompanyAndWebsite,
-  fetchCatalogFromAdmin,
 } from "@/lib/admin-api";
 import { fetchFullCatalog } from "@/lib/data-fetcher";
 
