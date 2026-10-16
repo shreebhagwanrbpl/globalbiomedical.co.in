@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import Home from "@/app/page";
 import { fetchDistrictsServer, fetchCategoriesServer } from "@/lib/data-fetcher-server";
 
